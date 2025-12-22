@@ -1,0 +1,15 @@
+{
+  "name": "lavender-moon-villa",
+  "version": "1.0.0",
+  "description": "Lavender Moon Villa - Boutique luxury retreat landing page",
+  "scripts": {
+    "dev": "npx serve -l 3000",
+    "start": "npx serve -l 3000"
+  },
+  "keywords": ["villa", "hotel", "booking", "landing-page"],
+  "author": "",
+  "license": "ISC"
+}
+
+
+
