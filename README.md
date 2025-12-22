@@ -41,8 +41,8 @@ npx serve
 ## Roadmap
 
 ### Phase 2: Backend Integration
-- [ ] Set up Node.js/Express or Python/Flask backend
-- [ ] Database setup (PostgreSQL recommended for reservations)
+- [ ] Set up Node.js/Express
+- [ ] Database setup (PostgreSQL)
 - [ ] User authentication for front desk staff
 
 ### Phase 3: Reservation System
