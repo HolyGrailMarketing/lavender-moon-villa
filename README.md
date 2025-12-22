@@ -50,7 +50,7 @@ npx serve
 - [ ] Real-time availability calendar
 - [ ] Booking workflow with date selection
 - [ ] Guest information capture
-- [ ] Payment integration (Stripe)
+- [ ] Payment integration (WiPay)
 - [ ] Confirmation emails
 
 ### Phase 4: Front Desk Dashboard
