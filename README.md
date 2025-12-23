@@ -4,8 +4,32 @@ A boutique luxury villa booking platform with a front desk reservation system, b
 
 ## 🌙 Live Site
 
-**Website**: [Deployed on Vercel]
+**Production Website**: [Deployed on Vercel from `main` branch]  
+**Staging Website**: [Deployed on Vercel from `staging` branch] - For client testing  
 **Location**: Breadnut Hill, Ocho Rios, St. Ann Parish, Jamaica
+
+## 🌿 Branch Strategy
+
+This project uses a two-branch strategy:
+
+- **`main` branch**: Production deployment with the original static HTML landing page
+  - Stable, public-facing website
+  - Contains only the landing page (index.html)
+  - Deployed to production URL
+
+- **`staging` branch**: Testing/development environment with full Next.js reservation system
+  - Full-featured application with dashboard and reservation system
+  - All Phase 2 & 3 features included
+  - Deployed to staging URL for client testing
+  - Used for development and client approval before merging to main
+
+### Development Workflow
+
+1. **Feature Development**: Work on feature branches or directly on `staging`
+2. **Client Testing**: Deploy to staging branch → Client tests at staging URL
+3. **Production Release**: Merge `staging` → `main` when ready to update production
+
+**Note**: Currently, `main` remains as the static landing page. When ready to update production, merge `staging` into `main`.
 
 ## 🚀 Getting Started
 
