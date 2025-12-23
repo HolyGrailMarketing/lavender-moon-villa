@@ -65,14 +65,52 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
     }
   }
 
+  // Helper function to normalize dates for comparison
+  const normalizeDate = (dateValue: string | Date): string => {
+    if (!dateValue) return ''
+    // If already a string in YYYY-MM-DD format, return as is
+    if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+      return dateValue
+    }
+    // If string with time component, extract just the date part
+    if (typeof dateValue === 'string' && dateValue.includes('T')) {
+      return dateValue.split('T')[0]
+    }
+    // Try to parse as Date
+    try {
+      const date = new Date(dateValue)
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0]
+      }
+    } catch (e) {
+      // If parsing fails, try to extract YYYY-MM-DD from string
+      const match = String(dateValue).match(/(\d{4}-\d{2}-\d{2})/)
+      if (match) return match[1]
+    }
+    return ''
+  }
+
+  // Get today's date in YYYY-MM-DD format
+  const getToday = (): string => {
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const today = getToday()
+
   const todayArrivals = reservations.filter(r => {
-    const today = new Date().toISOString().split('T')[0]
-    return r.check_in === today && r.status === 'confirmed'
+    const checkInDate = normalizeDate(r.check_in)
+    const matches = checkInDate === today && (r.status === 'confirmed' || r.status === 'pending')
+    return matches
   })
 
   const todayDepartures = reservations.filter(r => {
-    const today = new Date().toISOString().split('T')[0]
-    return r.check_out === today && r.status === 'checked_in'
+    const checkOutDate = normalizeDate(r.check_out)
+    const matches = checkOutDate === today && (r.status === 'checked_in' || r.status === 'confirmed')
+    return matches
   })
 
   const occupiedRooms = rooms.filter(r => r.status === 'occupied').length
@@ -223,15 +261,9 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
     invoiceWindow.print()
   }
 
-  const pendingCheckIns = reservations.filter(r => {
-    const today = new Date().toISOString().split('T')[0]
-    return r.check_in === today && r.status === 'confirmed'
-  })
-
-  const pendingCheckOuts = reservations.filter(r => {
-    const today = new Date().toISOString().split('T')[0]
-    return r.check_out === today && r.status === 'checked_in'
-  })
+  // Use the same logic as todayArrivals/todayDepartures to avoid duplication
+  const pendingCheckIns = todayArrivals
+  const pendingCheckOuts = todayDepartures
 
   return (
     <div className="min-h-screen bg-gray-50">
