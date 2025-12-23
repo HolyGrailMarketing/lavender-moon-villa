@@ -2,6 +2,9 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Stars from '@/components/Stars'
 
+// Force dynamic rendering to ensure proper deployment on Vercel
+export const dynamic = 'force-dynamic'
+
 export default function Home() {
   return (
     <main>
