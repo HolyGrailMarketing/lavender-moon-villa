@@ -1,6 +1,14 @@
 import { neon } from '@neondatabase/serverless';
 
-export const sql = neon(process.env.DATABASE_URL!);
+// Initialize database connection
+// Use placeholder during build if DATABASE_URL is not available
+// Will use actual connection string at runtime when env var is set
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl && typeof window === 'undefined') {
+  // Server-side: only warn during build, will fail at runtime if not set
+  console.warn('DATABASE_URL not set - this will fail at runtime');
+}
+export const sql = neon(databaseUrl || 'postgresql://build-placeholder');
 
 export type Room = {
   id: number;
