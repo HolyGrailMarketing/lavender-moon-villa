@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Lavender Moon Villa | Tranquil Luxury Retreat',
-  description: 'Experience tranquility at Lavender Moon Villa in Ocho Rios, Jamaica',
+  title: 'Lavender Moon Villas | Tranquil Luxury Retreat',
+  description: 'Experience tranquility at Lavender Moon Villas in Ocho Rios, Jamaica',
   icons: {
     icon: '/favicon.png',
     apple: '/apple-touch-icon.png',
@@ -28,5 +28,6 @@ export default function RootLayout({
     </html>
   )
 }
+
 
 

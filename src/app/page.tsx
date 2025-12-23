@@ -11,22 +11,22 @@ export default function Home() {
       {/* Navigation */}
       <nav id="navbar" className="fixed top-0 left-0 right-0 z-50 px-8 py-6 flex justify-between items-center bg-night-dark/90 backdrop-blur-md">
         <Link href="/" className="flex items-center">
-          <Image src="/Pictures/Logo.png" alt="Lavender Moon Villa" width={60} height={60} className="h-14 w-auto" style={{ width: 'auto', height: '3.5rem' }} />
+          <Image src="/Pictures/Logo.png" alt="Lavender Moon Villas" width={60} height={60} className="h-14 w-auto" style={{ width: 'auto', height: '3.5rem' }} />
         </Link>
-        <ul className="hidden md:flex gap-10 list-none">
-          {['About', 'Amenities', 'Rooms', 'Contact'].map((item) => (
-            <li key={item}>
-              <a href={`#${item.toLowerCase()}`} className="text-moon-cream text-sm font-normal tracking-widest uppercase hover:text-moon-gold transition-colors">
-                {item}
-              </a>
-            </li>
-          ))}
-          <li>
-            <Link href="/dashboard" className="text-moon-gold text-sm font-normal tracking-widest uppercase hover:text-moon-cream transition-colors">
-              Staff Login
-            </Link>
-          </li>
-        </ul>
+        <div className="hidden md:flex items-center gap-10">
+          <ul className="flex gap-10 list-none">
+            {['About', 'Amenities', 'Rooms', 'Contact'].map((item) => (
+              <li key={item}>
+                <a href={`#${item.toLowerCase()}`} className="text-moon-cream text-sm font-normal tracking-widest uppercase hover:text-moon-gold transition-colors">
+                  {item}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <a href="#contact" className="px-6 py-2 border border-moon-gold text-moon-gold text-sm tracking-widest uppercase hover:bg-moon-gold hover:text-night-dark transition-all">
+            Book Now
+          </a>
+        </div>
       </nav>
 
       {/* Hero Section */}
@@ -39,7 +39,7 @@ export default function Home() {
         
         <div className="text-center z-10 px-4">
           <p className="text-sm tracking-[0.4em] uppercase text-moon-gold mb-6 animate-fade-in">Welcome to</p>
-          <h1 className="text-5xl md:text-7xl font-serif text-moon-cream tracking-wider mb-2">Lavender Moon Villa</h1>
+          <h1 className="text-5xl md:text-7xl font-serif text-moon-cream tracking-wider mb-2">Lavender Moon Villas</h1>
           <p className="text-xl md:text-2xl font-serif italic text-lavender-soft mb-12">Where tranquility meets luxury under the moonlit sky</p>
           <a href="#contact" className="inline-block px-12 py-4 border border-moon-gold text-moon-gold text-sm tracking-widest uppercase hover:bg-moon-gold hover:text-night-dark transition-all">
             Reserve Your Escape
@@ -54,7 +54,7 @@ export default function Home() {
             <div className="aspect-[4/5] rounded overflow-hidden">
               <Image 
                 src="/Pictures/Environment/Lavender%20Moon%20Environment%20(27).JPG" 
-                alt="Sunset view from Lavender Moon Villa" 
+                alt="Sunset view from Lavender Moon Villas" 
                 fill
                 className="object-cover"
               />
@@ -64,7 +64,7 @@ export default function Home() {
           <div>
             <p className="text-sm tracking-[0.3em] uppercase text-lavender-medium mb-4">Our Story</p>
             <h2 className="text-4xl font-serif text-lavender-deep mb-8 leading-tight">A Sanctuary of Serenity Nestled in Nature&apos;s Embrace</h2>
-            <p className="text-gray-600 mb-4 font-light">Lavender Moon Villa is more than just a destination—it&apos;s an experience crafted for those who seek respite from the ordinary. Located in the beautiful hills of Ocho Rios, Jamaica, our boutique retreat offers an intimate escape where every detail speaks to refined comfort.</p>
+            <p className="text-gray-600 mb-4 font-light">Lavender Moon Villas is more than just a destination—it&apos;s an experience crafted for those who seek respite from the ordinary. Located in the beautiful hills of Ocho Rios, Jamaica, our boutique retreat offers an intimate escape where every detail speaks to refined comfort.</p>
             <p className="text-gray-600 font-light">Whether you&apos;re celebrating a special occasion, seeking a romantic getaway, or simply need to reconnect with peace, our villa welcomes you with open arms and warm hospitality.</p>
           </div>
         </div>
@@ -220,10 +220,10 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-12 px-8 bg-night-dark text-moon-cream text-center">
         <div className="mb-4">
-          <Image src="/Pictures/Logo.png" alt="Lavender Moon Villa" width={100} height={100} className="mx-auto h-24 w-auto" style={{ width: 'auto', height: '6rem' }} />
+          <Image src="/Pictures/Logo.png" alt="Lavender Moon Villas" width={100} height={100} className="mx-auto h-24 w-auto" style={{ width: 'auto', height: '6rem' }} />
         </div>
         <p className="font-serif italic text-lavender-soft mb-6">Where dreams rest beneath the lavender sky</p>
-        <p className="text-sm text-gray-500">© 2025 Lavender Moon Villa. All rights reserved.</p>
+        <p className="text-sm text-gray-500">© 2025 Lavender Moon Villas. All rights reserved.</p>
       </footer>
     </main>
   )

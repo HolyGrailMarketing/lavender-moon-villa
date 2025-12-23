@@ -202,7 +202,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
       </head>
       <body>
         <div class="header">
-          <h1>Lavender Moon Villa</h1>
+          <h1>Lavender Moon Villas</h1>
           <p>Breadnut Hill, Ocho Rios, St. Ann Parish, Jamaica</p>
           <p>Phone: +1 (876) 516-1421</p>
         </div>
@@ -282,7 +282,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
           <Image src="/Pictures/Logo.png" alt="Logo" width={40} height={40} className="h-8 md:h-10 w-auto" style={{ width: 'auto', height: '2.5rem' }} />
           <div className="hidden sm:block">
             <h1 className="text-base md:text-lg font-semibold">Front Desk Dashboard</h1>
-            <p className="text-xs md:text-sm text-lavender-soft">Lavender Moon Villa</p>
+            <p className="text-xs md:text-sm text-lavender-soft">Lavender Moon Villas</p>
           </div>
         </div>
         <div className="flex items-center gap-2 md:gap-6">

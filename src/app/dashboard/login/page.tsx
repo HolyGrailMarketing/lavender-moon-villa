@@ -45,7 +45,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Image 
             src="/Pictures/Logo.png" 
-            alt="Lavender Moon Villa" 
+            alt="Lavender Moon Villas" 
             width={80} 
             height={80} 
             className="mx-auto mb-4"

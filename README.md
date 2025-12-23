@@ -1,4 +1,4 @@
-# Lavender Moon Villa
+# Lavender Moon Villas
 
 A boutique luxury villa booking platform with a front desk reservation system, built with Next.js and Neon PostgreSQL.
 
@@ -156,7 +156,7 @@ This project uses **Neon PostgreSQL** for the database.
 - ✅ Guest information management
 
 ### Coming Soon (Phase 4 & 5)
-- [ ] Payment integration (Stripe)
+- [ ] Payment integration (WiPay)
 - [ ] Email notifications
 - [ ] Online guest booking portal
 - [ ] Guest account area
@@ -189,11 +189,11 @@ Features include:
 
 ## 📞 Contact
 
-**Lavender Moon Villa**
+**Lavender Moon Villas**
 - 📍 Breadnut Hill, Ocho Rios, St. Ann Parish, Jamaica
 - 📱 +1 (876) 516-1421
 - 📧 hello@lavendermoonvilla.com
 
 ## License
 
-© 2025 Lavender Moon Villa. All rights reserved.
+© 2025 Lavender Moon Villas. All rights reserved.
