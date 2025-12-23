@@ -1,84 +1,175 @@
 # Lavender Moon Villa
 
-A boutique luxury villa retreat landing page, designed to eventually scale into a full booking platform with a front desk reservation system.
+A boutique luxury villa booking platform with a front desk reservation system, built with Next.js and Neon PostgreSQL.
 
-## Current Features
+## 🌙 Live Site
 
-- **Beautiful Landing Page** - A single-page website with:
-  - Hero section with animated starry night sky and moon
-  - About section highlighting the villa's story and features
-  - Amenities showcase with hover animations
-  - Room/accommodation previews with pricing
-  - Contact form for inquiries
-  - Responsive design for all devices
+**Website**: [Deployed on Vercel]
+**Location**: Breadnut Hill, Ocho Rios, St. Ann Parish, Jamaica
 
-## Design System
+## 🚀 Getting Started
 
-### Colors
-- **Lavender Deep**: `#4a3f6b` - Primary brand color
-- **Lavender Medium**: `#7c6a9a` - Secondary accents
-- **Lavender Soft**: `#b8a9c9` - Light accents
-- **Moon Gold**: `#d4af37` - Highlight/CTA color
-- **Night Dark**: `#1a1425` - Dark backgrounds
-- **Moon Cream**: `#f5f0e8` - Light backgrounds
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+- Neon PostgreSQL database (or use the existing one)
 
-### Typography
-- **Headings**: Cormorant Garamond (elegant serif)
-- **Body**: Montserrat (clean sans-serif)
-
-## Running Locally
-
-Simply open `index.html` in a web browser, or use a local server:
+### Installation
 
 ```bash
-# Using Python
-python -m http.server 8000
+# Install dependencies
+npm install
 
-# Using Node.js (npx)
-npx serve
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your database credentials
+# The database connection string is already configured for the Neon project
+
+# Run development server
+npm run dev
 ```
 
-## Roadmap
+Open [http://localhost:3000](http://localhost:3000) to view the site.
 
-### Phase 2: Backend Integration
-- [ ] Set up Node.js/Express or Python/Flask backend
-- [ ] Database setup (PostgreSQL recommended for reservations)
-- [ ] User authentication for front desk staff
+### First Time Setup
 
-### Phase 3: Reservation System
-- [ ] Room inventory management
-- [ ] Real-time availability calendar
-- [ ] Booking workflow with date selection
-- [ ] Guest information capture
+1. **Access the dashboard**: Navigate to `/dashboard/login`
+2. **Login with default credentials** (see Staff Login section below)
+3. **Create your first reservation** to test the system
+4. **Update admin password** for security
+
+## 🔐 Staff Login
+
+Access the front desk dashboard at `/dashboard`
+
+**Default Admin Credentials:**
+- Email: `admin@lavendermoonvilla.com`
+- Password: `admin123`
+
+⚠️ **Change these credentials in production!**
+
+## 🗄️ Database
+
+This project uses **Neon PostgreSQL** for the database.
+
+### Schema
+
+**Tables:**
+- `rooms` - Room inventory with pricing and status
+- `guests` - Guest information
+- `reservations` - Booking records
+- `staff` - Front desk staff authentication
+
+### Neon Project Details
+- Project ID: `curly-block-95949825`
+- Database: `neondb`
+- Region: `us-east-1`
+
+## 📁 Project Structure
+
+```
+├── public/
+│   ├── Pictures/          # Property images
+│   ├── favicon.png
+│   └── apple-touch-icon.png
+├── src/
+│   ├── app/
+│   │   ├── page.tsx       # Landing page
+│   │   ├── dashboard/     # Staff dashboard
+│   │   │   ├── page.tsx
+│   │   │   ├── login/
+│   │   │   └── DashboardClient.tsx
+│   │   └── api/           # API routes
+│   │       ├── auth/      # Authentication endpoints
+│   │       ├── rooms/     # Room management
+│   │       ├── guests/    # Guest management
+│   │       └── reservations/  # Reservation CRUD & check-in/out
+│   ├── components/
+│   │   ├── ReservationForm.tsx    # Booking form component
+│   │   ├── AvailabilityCalendar.tsx  # Calendar view
+│   │   └── Stars.tsx      # Animated stars for hero
+│   └── lib/
+│       ├── db.ts          # Database connection & types
+│       └── auth.ts        # Authentication utilities
+├── package.json
+└── tailwind.config.ts
+```
+
+## 🎨 Design System
+
+### Colors
+- **Lavender Deep**: `#4a3f6b`
+- **Lavender Medium**: `#7c6a9a`
+- **Lavender Soft**: `#b8a9c9`
+- **Moon Gold**: `#d4af37`
+- **Night Dark**: `#1a1425`
+- **Moon Cream**: `#f5f0e8`
+
+### Typography
+- **Headings**: Cormorant Garamond (serif)
+- **Body**: Montserrat (sans-serif)
+
+## ✨ Features
+
+### Phase 2 - Backend Integration ✅
+- ✅ Beautiful responsive landing page
+- ✅ Next.js 14 with App Router
+- ✅ Neon PostgreSQL database
+- ✅ Staff authentication (JWT)
+- ✅ Front desk dashboard
+- ✅ Room status management
+- ✅ Reservation viewing
+
+### Phase 3 - Reservation System ✅
+- ✅ Create/edit reservations with full guest information
+- ✅ Real-time availability checking
+- ✅ Guest check-in/check-out workflow
+- ✅ Availability calendar with visual room status
+- ✅ Invoice generation (print-ready PDFs)
+- ✅ Responsive mobile-friendly dashboard
+- ✅ Room status updates (available/occupied/cleaning)
+- ✅ Automatic price calculation
+- ✅ Guest information management
+
+### Coming Soon (Phase 4 & 5)
 - [ ] Payment integration (Stripe)
-- [ ] Confirmation emails
-
-### Phase 4: Front Desk Dashboard
-- [ ] Daily arrivals/departures view
-- [ ] Room status board (occupied/available/cleaning)
-- [ ] Guest management
-- [ ] Check-in/check-out processing
-- [ ] Invoice generation
-- [ ] Reporting and analytics
-
-### Phase 5: Guest Features
-- [ ] Online booking portal
+- [ ] Email notifications
+- [ ] Online guest booking portal
 - [ ] Guest account area
-- [ ] Booking modification/cancellation
-- [ ] Special requests handling
+- [ ] Booking modification/cancellation by guests
+- [ ] Advanced reporting and analytics
 
-## Tech Stack (Planned)
+## 🛠️ Tech Stack
 
-- **Frontend**: HTML/CSS/JavaScript → React or Next.js
-- **Backend**: Node.js with Express or Python with Flask
-- **Database**: PostgreSQL (Neon recommended for serverless)
-- **Payments**: Stripe
-- **Email**: SendGrid or Resend
-- **Hosting**: Vercel or Railway
+- **Framework**: Next.js 14 (App Router)
+- **Database**: Neon PostgreSQL (serverless)
+- **Styling**: Tailwind CSS
+- **Authentication**: JWT with jose
+- **Password Hashing**: bcryptjs
+- **Image Optimization**: Next.js Image component
+- **Hosting**: Vercel
+
+## 📱 Mobile Support
+
+The dashboard is fully responsive and optimized for:
+- 📱 Mobile phones (320px+)
+- 📱 Tablets (768px+)
+- 💻 Desktops (1024px+)
+
+Features include:
+- Mobile hamburger menu
+- Touch-friendly buttons
+- Horizontal scrolling tables
+- Responsive grid layouts
+- Optimized calendar view
+
+## 📞 Contact
+
+**Lavender Moon Villa**
+- 📍 Breadnut Hill, Ocho Rios, St. Ann Parish, Jamaica
+- 📱 +1 (876) 516-1421
+- 📧 hello@lavendermoonvilla.com
 
 ## License
 
 © 2025 Lavender Moon Villa. All rights reserved.
-
-
-

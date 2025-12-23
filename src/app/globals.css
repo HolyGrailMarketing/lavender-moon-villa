@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --lavender-deep: #4a3f6b;
+  --lavender-medium: #7c6a9a;
+  --lavender-soft: #b8a9c9;
+  --lavender-pale: #e8e0f0;
+  --moon-cream: #f5f0e8;
+  --moon-gold: #d4af37;
+  --night-dark: #1a1425;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  line-height: 1.7;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--lavender-pale);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--lavender-medium);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lavender-deep);
+}
+
+/* Star twinkle animation */
+@keyframes twinkle {
+  0%, 100% { 
+    opacity: 0.3; 
+    transform: scale(1); 
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.2); 
+  }
+}
+
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+/* Moon glow animation */
+@keyframes moonGlow {
+  0%, 100% { 
+    box-shadow: 0 0 60px rgba(255, 250, 220, 0.4), 0 0 120px rgba(255, 250, 220, 0.2);
+  }
+  50% { 
+    box-shadow: 0 0 80px rgba(255, 250, 220, 0.5), 0 0 160px rgba(255, 250, 220, 0.3);
+  }
+}
+
+.moon {
+  background: radial-gradient(circle at 30% 30%, 
+    #fffef0 0%, 
+    #f5e6c8 40%, 
+    #e8d4a8 70%, 
+    #d4c090 100%);
+  box-shadow: 
+    0 0 60px rgba(255, 250, 220, 0.4),
+    0 0 120px rgba(255, 250, 220, 0.2),
+    inset -20px -10px 40px rgba(0, 0, 0, 0.1);
+  animation: moonGlow 4s ease-in-out infinite;
+}
+
+

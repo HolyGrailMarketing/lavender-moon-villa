@@ -1,15 +1,29 @@
 {
   "name": "lavender-moon-villa",
-  "version": "1.0.0",
-  "description": "Lavender Moon Villa - Boutique luxury retreat landing page",
+  "version": "2.0.0",
+  "private": true,
   "scripts": {
-    "dev": "npx serve -l 3000",
-    "start": "npx serve -l 3000"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
-  "keywords": ["villa", "hotel", "booking", "landing-page"],
-  "author": "",
-  "license": "ISC"
+  "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@neondatabase/serverless": "^0.9.0",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/bcryptjs": "^2.4.6",
+    "typescript": "^5",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8",
+    "autoprefixer": "^10"
+  }
 }
-
-
-

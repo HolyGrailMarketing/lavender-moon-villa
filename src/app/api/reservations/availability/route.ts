@@ -1,0 +1,48 @@
+import { NextResponse } from 'next/server'
+import { sql } from '@/lib/db'
+import { getSession } from '@/lib/auth'
+
+export async function GET(request: Request) {
+  try {
+    const session = await getSession()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const checkIn = searchParams.get('check_in')
+    const checkOut = searchParams.get('check_out')
+
+    if (!checkIn || !checkOut) {
+      return NextResponse.json(
+        { error: 'check_in and check_out dates are required' },
+        { status: 400 }
+      )
+    }
+
+    // Find rooms that have no conflicting reservations
+    const availableRooms = await sql`
+      SELECT r.*
+      FROM rooms r
+      WHERE r.status IN ('available', 'cleaning')
+      AND r.id NOT IN (
+        SELECT DISTINCT res.room_id
+        FROM reservations res
+        WHERE res.status IN ('confirmed', 'checked_in')
+        AND (
+          (res.check_in <= ${checkOut}::date AND res.check_out >= ${checkIn}::date)
+        )
+      )
+      ORDER BY r.room_number
+    `
+
+    return NextResponse.json(availableRooms)
+  } catch (error) {
+    console.error('Error checking availability:', error)
+    return NextResponse.json(
+      { error: 'Failed to check availability' },
+      { status: 500 }
+    )
+  }
+}
+
