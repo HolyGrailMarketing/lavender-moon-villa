@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
 import { createStaffMember } from '@/lib/auth'
 
+export const dynamic = 'force-dynamic'
+
 // This endpoint creates the first admin user
 // It should only work once when there are no staff members
 export async function POST(request: Request) {
