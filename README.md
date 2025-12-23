@@ -5,7 +5,7 @@ A boutique luxury villa booking platform with a front desk reservation system, b
 ## 🌙 Live Site
 
 **Production Website**: [Deployed on Vercel from `main` branch]  
-**Staging Website**: [Deployed on Vercel from `staging` branch] - For client testing  
+**Staging Website**: [Deployed on Vercel from `staging` branch] - For client testing (Preview deployment)  
 **Location**: Breadnut Hill, Ocho Rios, St. Ann Parish, Jamaica
 
 ## 🌿 Branch Strategy
