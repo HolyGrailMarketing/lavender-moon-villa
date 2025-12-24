@@ -23,9 +23,9 @@ export default function Home() {
               </li>
             ))}
           </ul>
-          <a href="#contact" className="px-6 py-2 border border-moon-gold text-moon-gold text-sm tracking-widest uppercase hover:bg-moon-gold hover:text-night-dark transition-all">
+          <Link href="/book" className="px-6 py-2 border border-moon-gold text-moon-gold text-sm tracking-widest uppercase hover:bg-moon-gold hover:text-night-dark transition-all">
             Book Now
-          </a>
+          </Link>
         </div>
       </nav>
 
@@ -41,9 +41,9 @@ export default function Home() {
           <p className="text-sm tracking-[0.4em] uppercase text-moon-gold mb-6 animate-fade-in">Welcome to</p>
           <h1 className="text-5xl md:text-7xl font-serif text-moon-cream tracking-wider mb-2">Lavender Moon Villas</h1>
           <p className="text-xl md:text-2xl font-serif italic text-lavender-soft mb-12">Where tranquility meets luxury under the moonlit sky</p>
-          <a href="#contact" className="inline-block px-12 py-4 border border-moon-gold text-moon-gold text-sm tracking-widest uppercase hover:bg-moon-gold hover:text-night-dark transition-all">
+          <Link href="/book" className="inline-block px-12 py-4 border border-moon-gold text-moon-gold text-sm tracking-widest uppercase hover:bg-moon-gold hover:text-night-dark transition-all">
             Reserve Your Escape
-          </a>
+          </Link>
         </div>
       </section>
 

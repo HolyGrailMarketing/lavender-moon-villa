@@ -155,12 +155,17 @@ This project uses **Neon PostgreSQL** for the database.
 - ✅ Automatic price calculation
 - ✅ Guest information management
 
-### Coming Soon (Phase 4 & 5)
-- [ ] Payment integration (WiPay)
-- [ ] Email notifications
-- [ ] Online guest booking portal
-- [ ] Guest account area
-- [ ] Booking modification/cancellation by guests
+### Phase 4 - Online Guest Booking Portal ✅ (In Progress)
+- ✅ Online guest booking portal with availability checking
+- ✅ Public booking API endpoints
+- ✅ Multi-step booking process (dates → room selection → guest details → confirmation)
+- ✅ Real-time room availability checking
+- ⏳ Payment integration (WiPay) - Coming next
+- ⏳ Email notifications - Coming next
+- ⏳ Guest account area - Coming next
+- ⏳ Booking modification/cancellation by guests - Coming next
+
+### Coming Soon (Phase 5)
 - [ ] Advanced reporting and analytics
 
 ## 🛠️ Tech Stack

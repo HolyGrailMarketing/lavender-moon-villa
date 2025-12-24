@@ -144,6 +144,28 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
     closeModal()
   }
 
+  async function handleRoomStatusChange(roomId: number, newStatus: string) {
+    try {
+      const res = await fetch('/api/rooms', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: roomId, status: newStatus }),
+      })
+
+      if (res.ok) {
+        // Update the room in the local state
+        setRooms(rooms.map(room => 
+          room.id === roomId ? { ...room, status: newStatus } : room
+        ))
+      } else {
+        alert('Failed to update room status')
+      }
+    } catch (error) {
+      console.error('Error updating room status:', error)
+      alert('Error updating room status')
+    }
+  }
+
   async function handleCheckIn(id: number) {
     if (!confirm('Check in this guest?')) return
 
@@ -547,14 +569,24 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                             <h3 className="text-lg font-semibold">{room.room_number}</h3>
                             <p className="text-sm text-gray-600">{room.name}</p>
                           </div>
-                          <span className={`px-2 py-1 text-xs rounded-full uppercase font-medium ${
-                            room.status === 'available' ? 'bg-green-200 text-green-800' :
-                            room.status === 'occupied' ? 'bg-red-200 text-red-800' :
-                            room.status === 'cleaning' ? 'bg-yellow-200 text-yellow-800' :
-                            'bg-gray-200 text-gray-800'
-                          }`}>
-                            {room.status}
-                          </span>
+                        </div>
+                        <div className="mb-4">
+                          <label className="block text-xs text-gray-600 mb-1">Status</label>
+                          <select
+                            value={room.status}
+                            onChange={(e) => handleRoomStatusChange(room.id, e.target.value)}
+                            className={`w-full px-3 py-2 text-sm rounded-lg border-2 font-medium uppercase ${
+                              room.status === 'available' ? 'bg-green-50 border-green-300 text-green-800' :
+                              room.status === 'occupied' ? 'bg-red-50 border-red-300 text-red-800' :
+                              room.status === 'cleaning' ? 'bg-yellow-50 border-yellow-300 text-yellow-800' :
+                              'bg-gray-50 border-gray-300 text-gray-800'
+                            } focus:outline-none focus:ring-2 focus:ring-lavender-medium cursor-pointer`}
+                          >
+                            <option value="available">Available</option>
+                            <option value="occupied">Occupied</option>
+                            <option value="cleaning">Cleaning</option>
+                            <option value="maintenance">Maintenance</option>
+                          </select>
                         </div>
                         <p className="text-2xl font-semibold text-lavender-deep">${room.price_per_night}<span className="text-sm font-normal text-gray-500">/night</span></p>
                       </div>
