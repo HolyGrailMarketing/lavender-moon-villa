@@ -72,20 +72,48 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id, status } = await request.json()
+    const { id, status, price_per_night } = await request.json()
 
-    const result = await sql`
-      UPDATE rooms 
-      SET status = ${status}
-      WHERE id = ${id}
-      RETURNING *
-    `
-
-    if (result.length === 0) {
-      return NextResponse.json({ error: 'Room not found' }, { status: 404 })
+    // Build dynamic update query based on what's provided
+    if (status !== undefined && price_per_night !== undefined) {
+      const result = await sql`
+        UPDATE rooms 
+        SET status = ${status}, price_per_night = ${price_per_night}
+        WHERE id = ${id}
+        RETURNING *
+      `
+      if (result.length === 0) {
+        return NextResponse.json({ error: 'Room not found' }, { status: 404 })
+      }
+      return NextResponse.json(result[0])
+    } else if (status !== undefined) {
+      const result = await sql`
+        UPDATE rooms 
+        SET status = ${status}
+        WHERE id = ${id}
+        RETURNING *
+      `
+      if (result.length === 0) {
+        return NextResponse.json({ error: 'Room not found' }, { status: 404 })
+      }
+      return NextResponse.json(result[0])
+    } else if (price_per_night !== undefined) {
+      const result = await sql`
+        UPDATE rooms 
+        SET price_per_night = ${price_per_night}
+        WHERE id = ${id}
+        RETURNING *
+      `
+      if (result.length === 0) {
+        return NextResponse.json({ error: 'Room not found' }, { status: 404 })
+      }
+      return NextResponse.json(result[0])
+    } else {
+      return NextResponse.json(
+        { error: 'status or price_per_night is required' },
+        { status: 400 }
+      )
     }
-
-    return NextResponse.json(result[0])
   } catch (error) {
     console.error('Error updating room:', error)
     return NextResponse.json(

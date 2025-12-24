@@ -37,6 +37,8 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
   const [editingReservation, setEditingReservation] = useState<number | null>(null)
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [editingPriceRoomId, setEditingPriceRoomId] = useState<number | null>(null)
+  const [priceEditValue, setPriceEditValue] = useState<string>('')
 
   useEffect(() => {
     fetchData()
@@ -163,6 +165,33 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
     } catch (error) {
       console.error('Error updating room status:', error)
       alert('Error updating room status')
+    }
+  }
+
+  async function handleRoomPriceChange(roomId: number, newPrice: number) {
+    if (isNaN(newPrice) || newPrice < 0) {
+      alert('Please enter a valid price')
+      return
+    }
+
+    try {
+      const res = await fetch('/api/rooms', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: roomId, price_per_night: newPrice }),
+      })
+
+      if (res.ok) {
+        // Update the room in the local state
+        setRooms(rooms.map(room => 
+          room.id === roomId ? { ...room, price_per_night: newPrice } : room
+        ))
+      } else {
+        alert('Failed to update room price')
+      }
+    } catch (error) {
+      console.error('Error updating room price:', error)
+      alert('Error updating room price')
     }
   }
 
@@ -588,7 +617,61 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                             <option value="maintenance">Maintenance</option>
                           </select>
                         </div>
-                        <p className="text-2xl font-semibold text-lavender-deep">${room.price_per_night}<span className="text-sm font-normal text-gray-500">/night</span></p>
+                        <div className="mb-4">
+                          <label className="block text-xs text-gray-600 mb-1">Price per Night</label>
+                          {editingPriceRoomId === room.id ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg font-semibold">$</span>
+                              <input
+                                type="number"
+                                value={priceEditValue}
+                                onChange={(e) => setPriceEditValue(e.target.value)}
+                                onBlur={() => {
+                                  const price = parseFloat(priceEditValue)
+                                  if (!isNaN(price) && price >= 0) {
+                                    handleRoomPriceChange(room.id, price)
+                                  }
+                                  setEditingPriceRoomId(null)
+                                  setPriceEditValue('')
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    const price = parseFloat(priceEditValue)
+                                    if (!isNaN(price) && price >= 0) {
+                                      handleRoomPriceChange(room.id, price)
+                                    }
+                                    setEditingPriceRoomId(null)
+                                    setPriceEditValue('')
+                                  } else if (e.key === 'Escape') {
+                                    setEditingPriceRoomId(null)
+                                    setPriceEditValue('')
+                                  }
+                                }}
+                                autoFocus
+                                className="flex-1 px-3 py-2 border-2 border-lavender-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-lavender-medium text-lg font-semibold"
+                                min="0"
+                                step="0.01"
+                              />
+                              <span className="text-sm text-gray-500">/night</span>
+                            </div>
+                          ) : (
+                            <div 
+                              onClick={() => {
+                                setEditingPriceRoomId(room.id)
+                                setPriceEditValue(room.price_per_night.toString())
+                              }}
+                              className="flex items-center gap-1 cursor-pointer hover:bg-lavender-pale rounded px-2 py-1 -mx-2 -my-1 transition-colors group"
+                            >
+                              <p className="text-2xl font-semibold text-lavender-deep group-hover:text-lavender-medium">
+                                ${room.price_per_night}
+                              </p>
+                              <span className="text-sm font-normal text-gray-500">/night</span>
+                              <svg className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
