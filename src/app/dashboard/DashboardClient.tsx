@@ -330,7 +330,15 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <Image src="/Pictures/Logo.png" alt="Logo" width={40} height={40} className="h-8 md:h-10 w-auto" style={{ width: 'auto', height: '2.5rem' }} />
+          <Image 
+            src="/Pictures/Logo.png" 
+            alt="Logo" 
+            width={40} 
+            height={40} 
+            className="h-8 md:h-10 w-auto" 
+            style={{ width: 'auto', height: '2.5rem' }} 
+            quality={90}
+          />
           <div className="hidden sm:block">
             <h1 className="text-base md:text-lg font-semibold text-gray-800">Front Desk Dashboard</h1>
             <p className="text-xs md:text-sm text-gray-500">Lavender Moon Villas</p>

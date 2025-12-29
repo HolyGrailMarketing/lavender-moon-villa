@@ -12,7 +12,16 @@ export default function Home() {
       {/* Navigation */}
       <nav id="navbar" className="fixed top-0 left-0 right-0 z-50 px-4 md:px-8 py-4 md:py-6 flex justify-between items-center bg-black/20 backdrop-blur-md">
         <Link href="/" className="flex items-center">
-          <Image src="/Pictures/Logo.png" alt="Lavender Moon Villas" width={60} height={60} className="h-12 md:h-14 w-auto" style={{ width: 'auto' }} />
+          <Image 
+            src="/Pictures/Logo.png" 
+            alt="Lavender Moon Villas" 
+            width={60} 
+            height={60} 
+            className="h-12 md:h-14 w-auto" 
+            style={{ width: 'auto' }} 
+            priority
+            quality={90}
+          />
         </Link>
         <div className="hidden md:flex items-center gap-10">
           <ul className="flex gap-10 list-none">
@@ -55,6 +64,8 @@ export default function Home() {
                 alt="Sunset view from Lavender Moon Villas" 
                 fill
                 className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                quality={85}
               />
             </div>
             <div className="absolute -bottom-8 -right-8 w-3/5 h-3/5 border border-moon-gold rounded -z-10" />
@@ -122,7 +133,15 @@ export default function Home() {
               { name: 'Renee Suite', desc: 'Elegant • Comfort & Style', price: '$280/night', img: '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(1).JPG', features: ['Queen Bed', 'Private Bath', 'WiFi'] },
             ].map((room, i) => (
               <div key={i} className="relative aspect-[3/4] rounded-xl overflow-hidden group shadow-xl">
-                <Image src={room.img} alt={room.name} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                <Image 
+                  src={room.img} 
+                  alt={room.name} 
+                  fill 
+                  className="object-cover group-hover:scale-105 transition-transform duration-700" 
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  quality={85}
+                  loading={i === 0 ? "eager" : "lazy"}
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                 <div className="absolute top-4 right-4 bg-moon-gold text-white px-3 py-1 rounded-full text-xs font-medium">
                   SUITE
@@ -162,7 +181,15 @@ export default function Home() {
               { name: 'Room 207-A', price: '$180/night', img: '/Pictures/207-A/Lavender%20Moon%20207%20A%20(1).JPG' },
             ].map((room, i) => (
               <div key={i} className="relative aspect-[4/5] rounded-lg overflow-hidden group shadow-lg hover:shadow-xl transition-shadow">
-                <Image src={room.img} alt={room.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                <Image 
+                  src={room.img} 
+                  alt={room.name} 
+                  fill 
+                  className="object-cover group-hover:scale-105 transition-transform duration-500" 
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
+                  quality={85}
+                  loading="lazy"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 text-white">
                   <h3 className="text-base md:text-lg font-serif mb-1">{room.name}</h3>
@@ -292,7 +319,15 @@ export default function Home() {
       {/* Footer */}
       <footer className="py-12 px-8 bg-lavender-pale text-center">
         <div className="mb-4">
-          <Image src="/Pictures/Logo.png" alt="Lavender Moon Villas" width={100} height={100} className="mx-auto h-24 w-auto" style={{ width: 'auto', height: '6rem' }} />
+          <Image 
+            src="/Pictures/Logo.png" 
+            alt="Lavender Moon Villas" 
+            width={100} 
+            height={100} 
+            className="mx-auto h-24 w-auto" 
+            style={{ width: 'auto', height: '6rem' }} 
+            quality={90}
+          />
         </div>
         <p className="font-serif italic text-gray-600 mb-6">Where dreams rest beneath the lavender sky</p>
         <p className="text-sm text-gray-500">© 2025 Lavender Moon Villas. All rights reserved.</p>

@@ -59,6 +59,8 @@ export default function ImageGallery() {
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-110"
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              loading="lazy"
+              quality={85}
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
               <svg 
@@ -125,6 +127,7 @@ export default function ImageGallery() {
               className="object-contain"
               sizes="100vw"
               priority
+              quality={90}
             />
           </div>
 

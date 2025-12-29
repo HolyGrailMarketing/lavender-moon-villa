@@ -79,6 +79,7 @@ export default function HeroSlideshow() {
             className="object-cover"
             priority={index === 0}
             sizes="100vw"
+            quality={90}
           />
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
