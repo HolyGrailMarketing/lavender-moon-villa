@@ -100,15 +100,63 @@ export default function Home() {
         </div>
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
           {[
-            { title: 'Mountain Views', desc: 'Wake up to stunning panoramic views of the Jamaican mountains', icon: '🏔️' },
-            { title: 'Private Terraces', desc: 'Each room features its own outdoor space to enjoy the tropical breeze', icon: '🌴' },
-            { title: 'Local Cuisine', desc: 'Savor authentic Jamaican flavors prepared with love', icon: '🍽️' },
-            { title: 'WiFi & AC', desc: 'Stay connected and comfortable with modern amenities', icon: '📶' },
-            { title: 'Concierge Service', desc: 'Let us arrange tours, transportation, and local experiences', icon: '🎯' },
-            { title: 'Peaceful Setting', desc: 'Escape the crowds in our tranquil hillside location', icon: '🌙' },
+            { 
+              title: 'Mountain Views', 
+              desc: 'Wake up to stunning panoramic views of the Jamaican mountains',
+              icon: (
+                <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.94" />
+                </svg>
+              )
+            },
+            { 
+              title: 'Private Terraces', 
+              desc: 'Each room features its own outdoor space to enjoy the tropical breeze',
+              icon: (
+                <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                </svg>
+              )
+            },
+            { 
+              title: 'Local Cuisine', 
+              desc: 'Savor authentic Jamaican flavors prepared with love',
+              icon: (
+                <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )
+            },
+            { 
+              title: 'WiFi & AC', 
+              desc: 'Stay connected and comfortable with modern amenities',
+              icon: (
+                <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" />
+                </svg>
+              )
+            },
+            { 
+              title: 'Concierge Service', 
+              desc: 'Let us arrange tours, transportation, and local experiences',
+              icon: (
+                <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                </svg>
+              )
+            },
+            { 
+              title: 'Peaceful Setting', 
+              desc: 'Escape the crowds in our tranquil hillside location',
+              icon: (
+                <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                </svg>
+              )
+            },
           ].map((amenity, i) => (
             <div key={i} className="bg-white p-8 rounded-lg text-center shadow-md hover:shadow-xl hover:-translate-y-2 transition-all">
-              <div className="text-4xl mb-4">{amenity.icon}</div>
+              <div className="text-lavender-medium mb-4 flex items-center justify-center">{amenity.icon}</div>
               <h3 className="text-xl font-serif text-lavender-deep mb-3">{amenity.title}</h3>
               <p className="text-gray-600 text-sm font-light">{amenity.desc}</p>
             </div>
