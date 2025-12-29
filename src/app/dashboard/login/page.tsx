@@ -40,7 +40,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-night-dark via-lavender-deep to-[#3d2d5a] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#f0f4f1] via-[#e8f0eb] to-[#d4e0d9] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <Image 

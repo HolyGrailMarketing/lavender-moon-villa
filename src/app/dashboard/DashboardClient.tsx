@@ -319,11 +319,11 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-night-dark text-moon-cream px-4 md:px-6 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2 md:gap-4">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden text-moon-cream p-2"
+            className="md:hidden text-gray-600 p-2"
             aria-label="Toggle menu"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -332,13 +332,13 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
           </button>
           <Image src="/Pictures/Logo.png" alt="Logo" width={40} height={40} className="h-8 md:h-10 w-auto" style={{ width: 'auto', height: '2.5rem' }} />
           <div className="hidden sm:block">
-            <h1 className="text-base md:text-lg font-semibold">Front Desk Dashboard</h1>
-            <p className="text-xs md:text-sm text-lavender-soft">Lavender Moon Villas</p>
+            <h1 className="text-base md:text-lg font-semibold text-gray-800">Front Desk Dashboard</h1>
+            <p className="text-xs md:text-sm text-gray-500">Lavender Moon Villas</p>
           </div>
         </div>
         <div className="flex items-center gap-2 md:gap-6">
-          <span className="text-xs md:text-sm hidden sm:inline">Welcome, {user.name}</span>
-          <button onClick={handleLogout} className="text-xs md:text-sm text-lavender-soft hover:text-moon-gold transition-colors px-2 py-1">
+          <span className="text-xs md:text-sm hidden sm:inline text-gray-600">Welcome, {user.name}</span>
+          <button onClick={handleLogout} className="text-xs md:text-sm text-gray-500 hover:text-lavender-deep transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100">
             Logout
           </button>
         </div>
@@ -362,11 +362,11 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
         `}>
           <nav className="space-y-2">
             {[
-              { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'reservations', label: 'Reservations', icon: '📅' },
-              { id: 'calendar', label: 'Calendar', icon: '📆' },
-              { id: 'rooms', label: 'Rooms', icon: '🛏️' },
-              { id: 'checkin', label: 'Check In/Out', icon: '✅' },
+              { id: 'overview', label: 'Overview' },
+              { id: 'reservations', label: 'Reservations' },
+              { id: 'calendar', label: 'Calendar' },
+              { id: 'rooms', label: 'Rooms' },
+              { id: 'checkin', label: 'Check In/Out' },
             ].map(item => (
               <button
                 key={item.id}
@@ -380,7 +380,31 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                     : 'hover:bg-lavender-pale text-gray-700'
                 }`}
               >
-                <span>{item.icon}</span>
+                {item.id === 'overview' && (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                )}
+                {item.id === 'reservations' && (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                )}
+                {item.id === 'calendar' && (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                )}
+                {item.id === 'rooms' && (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                )}
+                {item.id === 'checkin' && (
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
                 {item.label}
               </button>
             ))}

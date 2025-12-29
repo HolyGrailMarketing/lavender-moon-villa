@@ -3,13 +3,19 @@
 @tailwind utilities;
 
 :root {
-  --lavender-deep: #4a3f6b;
-  --lavender-medium: #7c6a9a;
-  --lavender-soft: #b8a9c9;
-  --lavender-pale: #e8e0f0;
-  --moon-cream: #f5f0e8;
-  --moon-gold: #d4af37;
-  --night-dark: #1a1425;
+  /* Elegant soft palette */
+  --lavender-deep: #6b8e7a;
+  --lavender-medium: #8fa89a;
+  --lavender-soft: #c5d4cb;
+  --lavender-pale: #f0f4f1;
+  --moon-cream: #faf8f5;
+  --moon-gold: #c9a959;
+  --night-dark: #2c3e35;
+  
+  /* Additional accent colors */
+  --sage-dark: #5a7463;
+  --sage-light: #e8f0eb;
+  --warm-gray: #6b6b6b;
 }
 
 html {
