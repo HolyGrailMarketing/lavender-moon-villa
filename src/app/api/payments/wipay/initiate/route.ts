@@ -52,6 +52,7 @@ export async function POST(request: Request) {
     // Prepare WiPay payment parameters
     const orderId = `RES-${reservation_id}-${Date.now()}`
     const currency = 'JMD' // Jamaican Dollar
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     // Format amount to 2 decimal places as required by WiPay
     const totalAmount = parseFloat(amount.toString()).toFixed(2)
     const paymentParams: Record<string, string> = {
@@ -61,12 +62,13 @@ export async function POST(request: Request) {
       total: totalAmount, // WiPay requires total field (must be formatted with 2 decimal places)
       currency: currency,
       country_code: WIPAY_COUNTRY_CODE, // WiPay requires country_code field (ISO 3166-1 alpha-2)
+      origin: baseUrl, // WiPay requires origin field (website URL)
       first_name: customer_name.split(' ')[0] || customer_name,
       last_name: customer_name.split(' ').slice(1).join(' ') || '',
       email: customer_email,
       phone: customer_phone || '',
-      return_url: return_url || `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/payments/wipay/callback`,
-      cancel_url: return_url || `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/book/payment/failed`,
+      return_url: return_url || `${baseUrl}/api/payments/wipay/callback`,
+      cancel_url: return_url || `${baseUrl}/book/payment/failed`,
     }
 
     // Generate hash for WiPay

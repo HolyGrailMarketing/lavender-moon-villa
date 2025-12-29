@@ -13,7 +13,8 @@ WIPAY_ACCOUNT_NUMBER=your_account_number
 WIPAY_API_KEY=your_api_key
 WIPAY_COUNTRY_CODE=JM  # ISO 3166-1 alpha-2 country code (JM for Jamaica)
 
-# Base URL for callbacks (optional, defaults to http://localhost:3000 for local dev)
+# Base URL for callbacks and origin field (REQUIRED for production)
+# This is used for the WiPay 'origin' field and callback URLs
 NEXT_PUBLIC_BASE_URL=https://your-domain.com
 ```
 
@@ -42,7 +43,16 @@ ADD COLUMN IF NOT EXISTS payment_date TIMESTAMP;
 2. **Payment Initiation:**
    - Payment API generates WiPay payment parameters
    - User is redirected to WiPay's secure payment page
-   - Payment parameters include order ID, amount, customer info, and hash for security
+   - Payment parameters include:
+     - `account_number` - Your WiPay merchant account
+     - `order_id` - Unique order identifier
+     - `amount` & `total` - Payment amount (formatted to 2 decimal places)
+     - `currency` - JMD (Jamaican Dollar)
+     - `country_code` - ISO 3166-1 alpha-2 code (e.g., JM)
+     - `origin` - Your website URL (NEXT_PUBLIC_BASE_URL)
+     - `first_name`, `last_name`, `email`, `phone` - Customer info
+     - `return_url`, `cancel_url` - Callback URLs
+     - `hash` - SHA-256 hash for security verification
 
 3. **Payment Callback:**
    - After payment (success or failure), WiPay redirects to `/api/payments/wipay/callback`
