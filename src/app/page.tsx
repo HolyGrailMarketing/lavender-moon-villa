@@ -331,7 +331,7 @@ export default function Home() {
             height={100} 
             className="mx-auto h-24 w-auto" 
             style={{ width: 'auto', height: '6rem' }} 
-            quality={90}
+            quality={80}
           />
         </div>
         <p className="font-serif italic text-gray-600 mb-6">Where dreams rest beneath the lavender sky</p>
