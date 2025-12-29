@@ -24,7 +24,7 @@ function PaymentFailedContent() {
               className="h-12 w-auto" 
               style={{ width: 'auto', height: '3rem' }} 
               priority
-              quality={90}
+              quality={80}
             />
             <span className="text-xl font-serif text-lavender-deep">Lavender Moon Villas</span>
           </Link>

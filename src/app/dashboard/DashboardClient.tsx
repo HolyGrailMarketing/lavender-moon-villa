@@ -337,7 +337,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
             height={40} 
             className="h-8 md:h-10 w-auto" 
             style={{ width: 'auto', height: '2.5rem' }} 
-            quality={90}
+            quality={80}
           />
           <div className="hidden sm:block">
             <h1 className="text-base md:text-lg font-semibold text-gray-800">Front Desk Dashboard</h1>

@@ -51,7 +51,7 @@ export default function LoginPage() {
             className="mx-auto mb-4"
             style={{ width: 'auto', height: '5rem' }}
             priority
-            quality={90}
+            quality={80}
           />
           <h1 className="text-2xl font-serif text-lavender-deep">Staff Login</h1>
           <p className="text-gray-500 text-sm mt-1">Front Desk Dashboard</p>
