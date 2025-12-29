@@ -45,7 +45,7 @@ async function sendEmailWithResend(data: EmailData): Promise<boolean> {
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to: data.to,
-      replyTo: REPLY_TO,
+      reply_to: REPLY_TO,
       subject: data.subject,
       html: data.html,
       text: data.text || data.html.replace(/<[^>]*>/g, ''), // Strip HTML for text version
