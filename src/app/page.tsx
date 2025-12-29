@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import Stars from '@/components/Stars'
+import HeroSlideshow from '@/components/HeroSlideshow'
+import ImageGallery from '@/components/ImageGallery'
 
 // Force dynamic rendering to ensure proper deployment on Vercel
 export const dynamic = 'force-dynamic'
@@ -9,39 +10,36 @@ export default function Home() {
   return (
     <main>
       {/* Navigation */}
-      <nav id="navbar" className="fixed top-0 left-0 right-0 z-50 px-8 py-6 flex justify-between items-center bg-night-dark/90 backdrop-blur-md">
+      <nav id="navbar" className="fixed top-0 left-0 right-0 z-50 px-4 md:px-8 py-4 md:py-6 flex justify-between items-center bg-black/20 backdrop-blur-md">
         <Link href="/" className="flex items-center">
-          <Image src="/Pictures/Logo.png" alt="Lavender Moon Villas" width={60} height={60} className="h-14 w-auto" style={{ width: 'auto', height: '3.5rem' }} />
+          <Image src="/Pictures/Logo.png" alt="Lavender Moon Villas" width={60} height={60} className="h-12 md:h-14 w-auto" style={{ width: 'auto' }} />
         </Link>
         <div className="hidden md:flex items-center gap-10">
           <ul className="flex gap-10 list-none">
-            {['About', 'Amenities', 'Rooms', 'Contact'].map((item) => (
+            {['About', 'Gallery', 'Rooms', 'Contact'].map((item) => (
               <li key={item}>
-                <a href={`#${item.toLowerCase()}`} className="text-moon-cream text-sm font-normal tracking-widest uppercase hover:text-moon-gold transition-colors">
+                <a href={`#${item.toLowerCase()}`} className="text-white text-sm font-normal tracking-widest uppercase hover:text-moon-gold transition-colors">
                   {item}
                 </a>
               </li>
             ))}
           </ul>
-          <Link href="/book" className="px-6 py-2 border border-moon-gold text-moon-gold text-sm tracking-widest uppercase hover:bg-moon-gold hover:text-night-dark transition-all">
+          <Link href="/book" className="px-6 py-2 border border-white text-white text-sm tracking-widest uppercase hover:bg-white hover:text-lavender-deep transition-all">
             Book Now
           </Link>
         </div>
+        {/* Mobile Menu Button */}
+        <Link href="/book" className="md:hidden px-4 py-2 bg-lavender-deep text-white text-xs tracking-widest uppercase rounded">
+          Book Now
+        </Link>
       </nav>
 
-      {/* Hero Section */}
-      <section className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-night-dark via-lavender-deep to-[#3d2d5a]">
-        {/* Stars */}
-        <Stars />
-        
-        {/* Moon */}
-        <div className="moon absolute top-[15%] right-[15%] w-28 h-28 md:w-32 md:h-32 rounded-full" />
-        
-        <div className="text-center z-10 px-4">
-          <p className="text-sm tracking-[0.4em] uppercase text-moon-gold mb-6 animate-fade-in">Welcome to</p>
-          <h1 className="text-5xl md:text-7xl font-serif text-moon-cream tracking-wider mb-2">Lavender Moon Villas</h1>
-          <p className="text-xl md:text-2xl font-serif italic text-lavender-soft mb-12">Where tranquility meets luxury under the moonlit sky</p>
-          <Link href="/book" className="inline-block px-12 py-4 border border-moon-gold text-moon-gold text-sm tracking-widest uppercase hover:bg-moon-gold hover:text-night-dark transition-all">
+      {/* Hero Section with Slideshow */}
+      <section className="h-screen relative">
+        <HeroSlideshow />
+        {/* Book Now CTA */}
+        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20">
+          <Link href="/book" className="inline-block px-10 md:px-12 py-3 md:py-4 bg-lavender-deep text-white text-sm tracking-widest uppercase hover:bg-lavender-medium transition-all rounded shadow-lg hover:shadow-xl">
             Reserve Your Escape
           </Link>
         </div>
@@ -70,22 +68,35 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Photo Gallery Section */}
+      <section id="gallery" className="py-24 px-4 md:px-8 bg-gray-50">
+        <div className="text-center mb-16">
+          <p className="text-sm tracking-[0.3em] uppercase text-lavender-medium mb-4">Explore Our Villa</p>
+          <h2 className="text-4xl font-serif text-lavender-deep">Photo Gallery</h2>
+          <p className="text-gray-600 mt-4 max-w-2xl mx-auto">Take a visual journey through our beautiful rooms and spaces</p>
+        </div>
+        <div className="max-w-6xl mx-auto">
+          <ImageGallery />
+        </div>
+      </section>
+
       {/* Amenities Section */}
-      <section id="amenities" className="py-24 px-8 bg-gradient-to-b from-lavender-pale to-moon-cream">
+      <section id="amenities" className="py-24 px-4 md:px-8 bg-gradient-to-b from-lavender-pale to-moon-cream">
         <div className="text-center mb-16">
           <p className="text-sm tracking-[0.3em] uppercase text-lavender-medium mb-4">The Experience</p>
           <h2 className="text-4xl font-serif text-lavender-deep">Curated Comforts Await</h2>
         </div>
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
           {[
-            { title: 'Mountain Views', desc: 'Wake up to stunning panoramic views of the Jamaican mountains' },
-            { title: 'Private Terraces', desc: 'Each room features its own outdoor space to enjoy the tropical breeze' },
-            { title: 'Local Cuisine', desc: 'Savor authentic Jamaican flavors prepared with love' },
-            { title: 'WiFi & AC', desc: 'Stay connected and comfortable with modern amenities' },
-            { title: 'Concierge Service', desc: 'Let us arrange tours, transportation, and local experiences' },
-            { title: 'Peaceful Setting', desc: 'Escape the crowds in our tranquil hillside location' },
+            { title: 'Mountain Views', desc: 'Wake up to stunning panoramic views of the Jamaican mountains', icon: '🏔️' },
+            { title: 'Private Terraces', desc: 'Each room features its own outdoor space to enjoy the tropical breeze', icon: '🌴' },
+            { title: 'Local Cuisine', desc: 'Savor authentic Jamaican flavors prepared with love', icon: '🍽️' },
+            { title: 'WiFi & AC', desc: 'Stay connected and comfortable with modern amenities', icon: '📶' },
+            { title: 'Concierge Service', desc: 'Let us arrange tours, transportation, and local experiences', icon: '🎯' },
+            { title: 'Peaceful Setting', desc: 'Escape the crowds in our tranquil hillside location', icon: '🌙' },
           ].map((amenity, i) => (
             <div key={i} className="bg-white p-8 rounded-lg text-center shadow-md hover:shadow-xl hover:-translate-y-2 transition-all">
+              <div className="text-4xl mb-4">{amenity.icon}</div>
               <h3 className="text-xl font-serif text-lavender-deep mb-3">{amenity.title}</h3>
               <p className="text-gray-600 text-sm font-light">{amenity.desc}</p>
             </div>
@@ -94,34 +105,83 @@ export default function Home() {
       </section>
 
       {/* Rooms Section */}
-      <section id="rooms" className="py-24 px-8 bg-night-dark text-moon-cream">
+      <section id="rooms" className="py-24 px-4 md:px-8 bg-white">
         <div className="text-center mb-16">
-          <p className="text-sm tracking-[0.3em] uppercase text-moon-gold mb-4">Accommodations</p>
-          <h2 className="text-4xl font-serif">Rest in Refined Elegance</h2>
+          <p className="text-sm tracking-[0.3em] uppercase text-lavender-medium mb-4">Accommodations</p>
+          <h2 className="text-4xl font-serif text-gray-800">Rest in Refined Elegance</h2>
+          <p className="text-gray-600 mt-4 max-w-2xl mx-auto">Choose from our selection of beautifully appointed suites and rooms</p>
         </div>
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
-          {[
-            { name: 'Room 206-B', desc: 'Cozy • Lavender Walls', price: '$120/night', img: '/Pictures/Room%20206-B/Lavender%20Moon%20206B%20(1).JPG' },
-            { name: 'Room 107-CF', desc: 'Private Patio • Garden View', price: '$150/night', img: '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(1).JPG' },
-            { name: 'Room 106-JW', desc: 'Spacious • Modern', price: '$140/night', img: '/Pictures/Environment/Lavender%20Moon%20Environment%20(27).JPG' },
-          ].map((room, i) => (
-            <div key={i} className="relative aspect-[3/4] rounded-lg overflow-hidden group">
-              <Image src={room.img} alt={room.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-night-dark/90 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <h3 className="text-2xl font-serif mb-2">{room.name}</h3>
-                <div className="flex gap-6 text-sm text-lavender-soft">
-                  <span>{room.desc}</span>
-                  <span className="text-moon-gold font-medium">From {room.price}</span>
+        
+        {/* Featured Suites */}
+        <div className="max-w-6xl mx-auto mb-16">
+          <h3 className="text-2xl font-serif text-lavender-deep mb-8 text-center">Premium Suites</h3>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { name: 'Victoria Suite', desc: 'Premium • Exceptional Luxury', price: '$480/night', img: '/Pictures/206-A/Lavender%20Moon%20206%20A%20(1).JPG', features: ['King Bed', 'Living Area', 'Mountain View'] },
+              { name: 'Alexander Suite', desc: 'Luxurious • Stunning Views', price: '$280/night', img: '/Pictures/207-A/Lavender%20Moon%20207%20A%20(1).JPG', features: ['Queen Bed', 'Balcony', 'AC'] },
+              { name: 'Renee Suite', desc: 'Elegant • Comfort & Style', price: '$280/night', img: '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(1).JPG', features: ['Queen Bed', 'Private Bath', 'WiFi'] },
+            ].map((room, i) => (
+              <div key={i} className="relative aspect-[3/4] rounded-xl overflow-hidden group shadow-xl">
+                <Image src={room.img} alt={room.name} fill className="object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute top-4 right-4 bg-moon-gold text-white px-3 py-1 rounded-full text-xs font-medium">
+                  SUITE
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                  <h3 className="text-2xl font-serif mb-2">{room.name}</h3>
+                  <p className="text-gray-300 text-sm mb-2">{room.desc}</p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {room.features.map((f, j) => (
+                      <span key={j} className="text-xs bg-white/20 px-2 py-1 rounded">{f}</span>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-moon-gold font-semibold text-lg">From {room.price}</span>
+                    <Link href="/book" className="text-xs bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-colors">
+                      Book Now →
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Standard Rooms */}
+        <div className="max-w-6xl mx-auto">
+          <h3 className="text-2xl font-serif text-lavender-deep mb-8 text-center">Rooms</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {[
+              { name: 'Room 108-JA', price: '$225/night', img: '/Pictures/106-JW/Lavender%20Moon%20106JW%20(1).JPG' },
+              { name: 'Room 109-LS', price: '$220/night', img: '/Pictures/Room%20206-B/Lavender%20Moon%20206B%20(1).JPG' },
+              { name: 'Room 209-JF', price: '$220/night', img: '/Pictures/207-A/Lavender%20Moon%20207%20A%20(2).JPG' },
+              { name: 'Room 208AB', price: '$280/night', img: '/Pictures/206-A/Lavender%20Moon%20206%20A%20(2).JPG' },
+              { name: 'Room 208A', price: '$190/night', img: '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(2).JPG' },
+              { name: 'Room 106-JW', price: '$325/night', img: '/Pictures/106-JW/Lavender%20Moon%20106JW%20(3).JPG' },
+              { name: 'Room 107-CF', price: '$260/night', img: '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(1).JPG' },
+              { name: 'Room 207-A', price: '$180/night', img: '/Pictures/207-A/Lavender%20Moon%20207%20A%20(1).JPG' },
+            ].map((room, i) => (
+              <div key={i} className="relative aspect-[4/5] rounded-lg overflow-hidden group shadow-lg hover:shadow-xl transition-shadow">
+                <Image src={room.img} alt={room.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 text-white">
+                  <h3 className="text-base md:text-lg font-serif mb-1">{room.name}</h3>
+                  <span className="text-moon-gold font-medium text-sm">From {room.price}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="text-center mt-12">
+          <Link href="/book" className="inline-block px-10 md:px-12 py-4 bg-lavender-deep text-white text-sm tracking-widest uppercase hover:bg-lavender-medium transition-all rounded-sm shadow-lg hover:shadow-xl">
+            View All Rooms & Book
+          </Link>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-24 px-8 bg-moon-cream">
+      <section id="contact" className="py-24 px-4 md:px-8 bg-moon-cream">
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-16">
           <div>
             <h2 className="text-4xl font-serif text-lavender-deep mb-6">Begin Your Journey to Tranquility</h2>
@@ -156,12 +216,24 @@ export default function Home() {
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-lavender-pale rounded-full flex items-center justify-center">
                   <svg className="w-5 h-5 text-lavender-deep" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 01.253-2.96l1.753-4.398a4.25 4.25 0 00-.9-3.996 4.25 4.25 0 00-3.996-.9L2.348 8.91a4.48 4.48 0 01-.253-2.96 5.969 5.969 0 01.474-.065A5.972 5.972 0 015.41 3.03c1.281-.22 2.64-.28 4.09 0C13.97 3.75 18 7.444 18 12z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-xs tracking-widest uppercase text-lavender-medium mb-1">WhatsApp</h4>
+                  <p><a href="https://wa.me/18765068440" target="_blank" rel="noopener noreferrer" className="hover:text-lavender-deep">+1 (876) 506-8440</a></p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-lavender-pale rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-lavender-deep" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                   </svg>
                 </div>
                 <div>
                   <h4 className="text-xs tracking-widest uppercase text-lavender-medium mb-1">Email</h4>
-                  <p><a href="mailto:hello@lavendermoonvilla.com" className="hover:text-lavender-deep">hello@lavendermoonvilla.com</a></p>
+                  <p><a href="mailto:reservations@lavendermoon.net" className="hover:text-lavender-deep">reservations@lavendermoon.net</a></p>
                 </div>
               </div>
             </div>
@@ -218,11 +290,11 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-8 bg-night-dark text-moon-cream text-center">
+      <footer className="py-12 px-8 bg-lavender-pale text-center">
         <div className="mb-4">
           <Image src="/Pictures/Logo.png" alt="Lavender Moon Villas" width={100} height={100} className="mx-auto h-24 w-auto" style={{ width: 'auto', height: '6rem' }} />
         </div>
-        <p className="font-serif italic text-lavender-soft mb-6">Where dreams rest beneath the lavender sky</p>
+        <p className="font-serif italic text-gray-600 mb-6">Where dreams rest beneath the lavender sky</p>
         <p className="text-sm text-gray-500">© 2025 Lavender Moon Villas. All rights reserved.</p>
       </footer>
     </main>

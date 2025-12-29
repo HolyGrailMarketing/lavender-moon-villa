@@ -15,8 +15,9 @@ type Room = {
 
 export default function BookPage() {
   const router = useRouter()
-  const [step, setStep] = useState<'dates' | 'rooms' | 'details' | 'confirmation'>('dates')
+  const [step, setStep] = useState<'dates' | 'rooms' | 'details' | 'payment' | 'confirmation'>('dates')
   const [loading, setLoading] = useState(false)
+  const [processingPayment, setProcessingPayment] = useState(false)
   const [checkingAvailability, setCheckingAvailability] = useState(false)
   const [availableRooms, setAvailableRooms] = useState<Room[]>([])
   const [formData, setFormData] = useState({
@@ -33,8 +34,8 @@ export default function BookPage() {
     },
     special_requests: '',
   })
+  const [reservationId, setReservationId] = useState<number | null>(null)
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
-  const [bookingId, setBookingId] = useState<number | null>(null)
 
   useEffect(() => {
     // Set minimum date to today
@@ -111,7 +112,7 @@ export default function BookPage() {
       )
       const totalPrice = Number(selectedRoom.price_per_night) * nights
 
-      // Create reservation
+      // Create reservation with 'pending' status (will be confirmed after payment)
       const reservationRes = await fetch('/api/reservations/public', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -132,13 +133,67 @@ export default function BookPage() {
       }
 
       const reservation = await reservationRes.json()
-      setBookingId(reservation.id)
-      setBookingConfirmed(true)
-      setStep('confirmation')
+      setReservationId(reservation.id)
+      setStep('payment') // Move to payment step
     } catch (error: any) {
       alert(error.message || 'Error creating reservation. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handlePayment() {
+    if (!reservationId || !selectedRoom) return
+
+    setProcessingPayment(true)
+
+    try {
+      const nights = Math.ceil(
+        (new Date(formData.check_out).getTime() - new Date(formData.check_in).getTime()) / 
+        (1000 * 60 * 60 * 24)
+      )
+      const totalPrice = Number(selectedRoom.price_per_night) * nights
+
+      // Initiate WiPay payment
+      const paymentRes = await fetch('/api/payments/wipay/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reservation_id: reservationId,
+          amount: totalPrice,
+          customer_name: `${formData.guest.first_name} ${formData.guest.last_name}`,
+          customer_email: formData.guest.email,
+          customer_phone: formData.guest.phone,
+          return_url: `${window.location.origin}/api/payments/wipay/callback`,
+        }),
+      })
+
+      if (!paymentRes.ok) {
+        const error = await paymentRes.json()
+        throw new Error(error.error || 'Failed to initiate payment')
+      }
+
+      const paymentData = await paymentRes.json()
+
+      // Create form to submit to WiPay
+      const form = document.createElement('form')
+      form.method = 'POST'
+      form.action = paymentData.payment_url
+
+      // Add all payment parameters as hidden fields
+      Object.entries(paymentData.payment_params).forEach(([key, value]) => {
+        const input = document.createElement('input')
+        input.type = 'hidden'
+        input.name = key
+        input.value = String(value)
+        form.appendChild(input)
+      })
+
+      document.body.appendChild(form)
+      form.submit()
+    } catch (error: any) {
+      alert(error.message || 'Error initiating payment. Please try again.')
+      setProcessingPayment(false)
     }
   }
 
@@ -166,23 +221,56 @@ export default function BookPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center justify-center gap-2 md:gap-4">
+          <div className="flex items-center justify-center gap-1 md:gap-2 overflow-x-auto pb-2">
             {[
-              { key: 'dates', label: '1. Dates', icon: '📅' },
-              { key: 'rooms', label: '2. Room', icon: '🛏️' },
-              { key: 'details', label: '3. Details', icon: '✏️' },
-              { key: 'confirmation', label: '4. Confirm', icon: '✅' },
-            ].map((s, i) => (
-              <div key={s.key} className="flex items-center">
-                <div className={`flex flex-col items-center ${step === s.key ? 'text-lavender-deep' : step === 'confirmation' || ['dates', 'rooms', 'details', 'confirmation'].indexOf(step) > ['dates', 'rooms', 'details', 'confirmation'].indexOf(s.key) ? 'text-lavender-medium' : 'text-gray-400'}`}>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${step === s.key ? 'bg-lavender-deep text-white' : step === 'confirmation' || ['dates', 'rooms', 'details', 'confirmation'].indexOf(step) > ['dates', 'rooms', 'details', 'confirmation'].indexOf(s.key) ? 'bg-lavender-medium text-white' : 'bg-gray-200 text-gray-500'}`}>
-                    {s.icon}
+              { key: 'dates', label: '1. Dates' },
+              { key: 'rooms', label: '2. Room' },
+              { key: 'details', label: '3. Details' },
+              { key: 'payment', label: '4. Payment' },
+              { key: 'confirmation', label: '5. Confirm' },
+            ].map((s, i) => {
+              const stepOrder = ['dates', 'rooms', 'details', 'payment', 'confirmation']
+              const currentStepIndex = stepOrder.indexOf(step)
+              const stepIndex = stepOrder.indexOf(s.key)
+              const isActive = step === s.key
+              const isCompleted = currentStepIndex > stepIndex
+              
+              return (
+                <div key={s.key} className="flex items-center">
+                  <div className={`flex flex-col items-center ${isActive ? 'text-lavender-deep' : isCompleted ? 'text-lavender-medium' : 'text-gray-400'}`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isActive ? 'bg-lavender-deep text-white' : isCompleted ? 'bg-lavender-medium text-white' : 'bg-gray-200 text-gray-500'}`}>
+                      {s.key === 'dates' && (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                      {s.key === 'rooms' && (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                      )}
+                      {s.key === 'details' && (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      )}
+                      {s.key === 'payment' && (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                      )}
+                      {s.key === 'confirmation' && (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-xs mt-1 hidden sm:block whitespace-nowrap">{s.label}</span>
                   </div>
-                  <span className="text-xs mt-1 hidden sm:block">{s.label}</span>
+                  {i < 4 && <div className={`w-4 md:w-8 h-0.5 mx-1 ${isCompleted ? 'bg-lavender-medium' : 'bg-gray-200'}`} />}
                 </div>
-                {i < 3 && <div className={`w-8 md:w-16 h-0.5 mx-2 ${step === 'confirmation' || ['dates', 'rooms', 'details', 'confirmation'].indexOf(step) > i ? 'bg-lavender-medium' : 'bg-gray-200'}`} />}
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
@@ -408,34 +496,75 @@ export default function BookPage() {
                 disabled={loading}
                 className="w-full py-4 bg-lavender-deep text-white text-lg font-medium rounded-lg hover:bg-lavender-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Processing...' : 'Complete Booking'}
+                {loading ? 'Processing...' : 'Continue to Payment'}
               </button>
             </form>
           </div>
         )}
 
-        {/* Step 4: Confirmation */}
-        {step === 'confirmation' && bookingConfirmed && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="text-4xl">✅</span>
+        {/* Step 4: Payment */}
+        {step === 'payment' && selectedRoom && reservationId && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+            <button
+              onClick={() => setStep('details')}
+              className="text-lavender-medium hover:text-lavender-deep mb-4 flex items-center gap-2"
+            >
+              ← Back
+            </button>
+            <h2 className="text-2xl md:text-3xl font-serif text-lavender-deep mb-6">Complete Payment</h2>
+            
+            <div className="bg-lavender-pale rounded-lg p-6 mb-6">
+              <h3 className="font-semibold text-lavender-deep mb-4">Booking Summary</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Room:</span>
+                  <span className="font-medium">{selectedRoom.room_number} - {selectedRoom.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Check-in:</span>
+                  <span className="font-medium">{new Date(formData.check_in).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Check-out:</span>
+                  <span className="font-medium">{new Date(formData.check_out).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Nights:</span>
+                  <span className="font-medium">{nights}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Guests:</span>
+                  <span className="font-medium">{formData.num_guests}</span>
+                </div>
+                <div className="flex justify-between text-xl font-bold text-lavender-deep pt-3 border-t border-lavender-medium mt-3">
+                  <span>Total Amount:</span>
+                  <span>${totalPrice.toFixed(2)}</span>
+                </div>
+              </div>
             </div>
-            <h2 className="text-3xl md:text-4xl font-serif text-lavender-deep mb-4">Booking Confirmed!</h2>
-            <p className="text-gray-600 mb-2">Thank you for your reservation.</p>
-            <p className="text-sm text-gray-500 mb-8">Confirmation #: {bookingId}</p>
-            <p className="text-gray-600 mb-8">
-              A confirmation email will be sent to <strong>{formData.guest.email}</strong>
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/"
-                className="px-6 py-3 bg-lavender-deep text-white rounded-lg hover:bg-lavender-medium transition-colors"
-              >
-                Back to Home
-              </Link>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">Secure Payment</p>
+                  <p>You will be redirected to WiPay's secure payment page to complete your booking. Your reservation will be confirmed once payment is successful.</p>
+                </div>
+              </div>
             </div>
+
+            <button
+              onClick={handlePayment}
+              disabled={processingPayment}
+              className="w-full py-4 bg-lavender-deep text-white text-lg font-medium rounded-lg hover:bg-lavender-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {processingPayment ? 'Processing...' : `Pay ${totalPrice.toFixed(2)}`}
+            </button>
           </div>
         )}
+
       </div>
     </div>
   )

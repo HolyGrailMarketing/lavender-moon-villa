@@ -160,8 +160,8 @@ This project uses **Neon PostgreSQL** for the database.
 - ✅ Public booking API endpoints
 - ✅ Multi-step booking process (dates → room selection → guest details → confirmation)
 - ✅ Real-time room availability checking
-- ⏳ Payment integration (WiPay) - Coming next
-- ⏳ Email notifications - Coming next
+- ✅ Payment integration (WiPay)
+- ✅ Email notifications (booking confirmations, updates, cancellations)
 - ⏳ Guest account area - Coming next
 - ⏳ Booking modification/cancellation by guests - Coming next
 
@@ -175,6 +175,8 @@ This project uses **Neon PostgreSQL** for the database.
 - **Styling**: Tailwind CSS
 - **Authentication**: JWT with jose
 - **Password Hashing**: bcryptjs
+- **Email Service**: Resend API
+- **Payment Gateway**: WiPay
 - **Image Optimization**: Next.js Image component
 - **Hosting**: Vercel
 
@@ -197,7 +199,8 @@ Features include:
 **Lavender Moon Villas**
 - 📍 Breadnut Hill, Ocho Rios, St. Ann Parish, Jamaica
 - 📱 +1 (876) 516-1421
-- 📧 hello@lavendermoonvilla.com
+- 💬 WhatsApp: +1 (876) 506-8440
+- 📧 reservations@lavendermoon.net
 
 ## License
 
