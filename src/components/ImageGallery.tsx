@@ -4,17 +4,23 @@ import { useState } from 'react'
 import Image from 'next/image'
 
 const galleryImages = [
+  // Property Photos
+  { src: '/Pictures/Property/IMG_2951.JPG', alt: 'Lavender Moon Villas Property' },
+  { src: '/Pictures/Property/IMG_5055.JPG', alt: 'Lavender Moon Villas View' },
+  { src: '/Pictures/Property/IMG_9372.JPG', alt: 'Lavender Moon Villas Exterior' },
+  { src: '/Pictures/Property/17431aa2-01eb-4157-9073-d4439b15b799.JPG', alt: 'Pool Area' },
+  { src: '/Pictures/Property/3bca5c5a-f26d-405a-939d-f4e08aecc162.JPG', alt: 'Property View' },
+  { src: '/Pictures/Property/4bf3e28b-e48b-49b9-b87f-9908eda2f1b6.JPG', alt: 'Villa Exterior' },
+  { src: '/Pictures/Property/518fbfac-bec1-4089-8bff-4c9c16b005dd.JPG', alt: 'Gardens' },
+  { src: '/Pictures/Property/750e4462-615a-40ce-bac3-3552874256d8.JPG', alt: 'Outdoor Space' },
+  // Room Photos
   { src: '/Pictures/106-JW/Lavender%20Moon%20106JW%20(1).JPG', alt: 'Room 106-JW Interior' },
   { src: '/Pictures/106-JW/Lavender%20Moon%20106JW%20(5).JPG', alt: 'Room 106-JW Bedroom' },
   { src: '/Pictures/206-A/Lavender%20Moon%20206%20A%20(1).JPG', alt: 'Suite 206-A' },
-  { src: '/Pictures/206-A/Lavender%20Moon%20206%20A%20(5).JPG', alt: 'Suite 206-A Living Area' },
   { src: '/Pictures/207-A/Lavender%20Moon%20207%20A%20(1).JPG', alt: 'Room 207-A' },
-  { src: '/Pictures/207-A/Lavender%20Moon%20207%20A%20(3).JPG', alt: 'Room 207-A View' },
   { src: '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(1).JPG', alt: 'Room 107-CF' },
-  { src: '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(5).JPG', alt: 'Room 107-CF Interior' },
   { src: '/Pictures/Room%20206-B/Lavender%20Moon%20206B%20(1).JPG', alt: 'Room 206-B' },
   { src: '/Pictures/106-JW/Lavender%20Moon%20106JW%20(10).JPG', alt: 'Room Details' },
-  { src: '/Pictures/206-A/Lavender%20Moon%20206%20A%20(10).JPG', alt: 'Suite Amenities' },
   { src: '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(10).JPG', alt: 'Bathroom' },
 ]
 
