@@ -21,6 +21,9 @@ export async function GET() {
         r.total_price,
         r.status,
         r.special_requests,
+        r.source,
+        r.use_custom_total,
+        r.additional_guests,
         rm.room_number,
         rm.name as room_name,
         g.first_name || ' ' || g.last_name as guest_name,
@@ -49,11 +52,28 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json()
-    const { room_id, guest_id, check_in, check_out, num_guests, total_price, special_requests } = data
+    const { 
+      room_id, 
+      guest_id, 
+      check_in, 
+      check_out, 
+      num_guests, 
+      total_price, 
+      special_requests,
+      source,
+      use_custom_total,
+      additional_guests
+    } = data
 
     const result = await sql`
-      INSERT INTO reservations (room_id, guest_id, check_in, check_out, num_guests, total_price, special_requests)
-      VALUES (${room_id}, ${guest_id}, ${check_in}, ${check_out}, ${num_guests}, ${total_price}, ${special_requests})
+      INSERT INTO reservations (
+        room_id, guest_id, check_in, check_out, num_guests, total_price, 
+        special_requests, source, use_custom_total, additional_guests
+      )
+      VALUES (
+        ${room_id}, ${guest_id}, ${check_in}, ${check_out}, ${num_guests}, ${total_price}, 
+        ${special_requests}, ${source || 'direct'}, ${use_custom_total || false}, ${additional_guests || null}
+      )
       RETURNING *
     `
 

@@ -8,16 +8,18 @@ export const dynamic = 'force-dynamic'
 const WIPAY_API_KEY = process.env.WIPAY_API_KEY || ''
 
 // Verify WiPay callback hash
-function verifyWipayHash(params: Record<string, string>, hash: string, apiKey: string): boolean {
-  // Remove hash from params for verification
-  const { hash: _, ...paramsToVerify } = params
+// According to WiPay docs: hash = MD5(transaction_id + total + api_key) with no separators
+function verifyWipayHash(transactionId: string, total: string, hash: string, apiKey: string): boolean {
+  // Hash is only present for successful transactions
+  if (!hash) {
+    return false
+  }
   
-  // Sort parameters and create hash string
-  const sortedKeys = Object.keys(paramsToVerify).sort()
-  const hashString = sortedKeys.map(key => `${key}=${paramsToVerify[key]}`).join('&') + apiKey
-  const calculatedHash = crypto.createHash('sha256').update(hashString).digest('hex')
+  // Concatenate: transaction_id + total + api_key (no separators)
+  const hashString = transactionId + total + apiKey
+  const calculatedHash = crypto.createHash('md5').update(hashString).digest('hex')
   
-  return calculatedHash === hash
+  return calculatedHash.toLowerCase() === hash.toLowerCase()
 }
 
 export async function GET(request: Request) {
@@ -27,21 +29,19 @@ export async function GET(request: Request) {
     // Extract WiPay callback parameters
     const orderId = searchParams.get('order_id')
     const status = searchParams.get('status')
-    const transactionId = searchParams.get('transaction_id')
+    const transactionId = searchParams.get('transaction_id') || ''
+    const total = searchParams.get('total') || ''
     const hash = searchParams.get('hash') || ''
 
-    // Get all parameters for hash verification
-    const callbackParams: Record<string, string> = {}
-    searchParams.forEach((value, key) => {
-      callbackParams[key] = value
-    })
-
-    // Verify hash
-    if (!verifyWipayHash(callbackParams, hash, WIPAY_API_KEY)) {
-      return NextResponse.json(
-        { error: 'Invalid hash' },
-        { status: 400 }
-      )
+    // Verify hash (only for successful transactions - hash is conditionally absent for failed/error)
+    if (status === 'success' && hash) {
+      if (!verifyWipayHash(transactionId, total, hash, WIPAY_API_KEY)) {
+        console.error('Hash verification failed', { transactionId, total, receivedHash: hash })
+        return NextResponse.json(
+          { error: 'Invalid hash' },
+          { status: 400 }
+        )
+      }
     }
 
     if (!orderId || !status) {
@@ -75,7 +75,8 @@ export async function GET(request: Request) {
     }
 
     // Update reservation based on payment status
-    if (status === 'successful' || status === 'Success') {
+    // WiPay status values: 'success', 'failed', or 'error'
+    if (status === 'success') {
       // Payment successful - confirm reservation
       // Update status - payment columns are optional (add them to schema if needed)
       try {

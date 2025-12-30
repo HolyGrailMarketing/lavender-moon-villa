@@ -89,6 +89,22 @@ This project uses **Neon PostgreSQL** for the database.
 - Database: `neondb`
 - Region: `us-east-1`
 
+### Database Migrations
+
+To add payment tracking columns to the reservations table (required for WiPay integration):
+
+```bash
+DATABASE_URL=your_connection_string node scripts/add-payment-columns.mjs
+```
+
+This will add the following columns:
+- `payment_reference` - Payment order reference
+- `payment_status` - Payment status (paid, failed, etc.)
+- `payment_transaction_id` - WiPay transaction ID
+- `payment_date` - Payment completion timestamp
+
+**Note:** The application will work without these columns, but payment tracking information won't be stored.
+
 ## 📁 Project Structure
 
 ```

@@ -35,11 +35,15 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
   const [rooms, setRooms] = useState<Room[]>([])
   
   const [guestId, setGuestId] = useState<number | null>(null)
+  const [useCustomTotal, setUseCustomTotal] = useState(false)
+  const [customTotal, setCustomTotal] = useState('')
+  const [additionalGuests, setAdditionalGuests] = useState<string[]>([])
   const [formData, setFormData] = useState({
     check_in: '',
     check_out: '',
     num_guests: 1,
     room_id: '',
+    source: 'direct',
     guest: {
       first_name: '',
       last_name: '',
@@ -90,6 +94,7 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
           check_out: data.check_out.split('T')[0],
           num_guests: data.num_guests,
           room_id: data.room_id.toString(),
+          source: data.source || 'direct',
           guest: {
             id: data.guest_id,
             first_name: nameParts[0] || '',
@@ -102,6 +107,19 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
           },
           special_requests: data.special_requests || '',
         })
+        // Load custom total if set
+        if (data.use_custom_total) {
+          setUseCustomTotal(true)
+          setCustomTotal(data.total_price?.toString() || '')
+        }
+        // Load additional guests
+        if (data.additional_guests) {
+          try {
+            setAdditionalGuests(JSON.parse(data.additional_guests))
+          } catch (e) {
+            setAdditionalGuests([])
+          }
+        }
         // Set available rooms to all rooms when editing
         setAvailableRooms(rooms)
       }
@@ -167,7 +185,8 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
         (new Date(formData.check_out).getTime() - new Date(formData.check_in).getTime()) / 
         (1000 * 60 * 60 * 24)
       )
-      const totalPrice = Number(selectedRoom.price_per_night) * nights
+      const calculatedPrice = Number(selectedRoom.price_per_night) * nights
+      const finalPrice = useCustomTotal && customTotal ? parseFloat(customTotal) : calculatedPrice
 
       // Create or update reservation
       const url = reservationId 
@@ -180,8 +199,11 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
         check_in: formData.check_in,
         check_out: formData.check_out,
         num_guests: formData.num_guests,
-        total_price: totalPrice,
+        total_price: finalPrice,
         special_requests: formData.special_requests || null,
+        source: formData.source,
+        use_custom_total: useCustomTotal,
+        additional_guests: additionalGuests.length > 0 ? JSON.stringify(additionalGuests) : null,
       }
 
       if (!reservationId) {
@@ -259,22 +281,42 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
       </div>
 
       {(availableRooms.length > 0 || reservationId) && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Select Room</label>
-          <select
-            value={formData.room_id}
-            onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
-          >
-            <option value="">Select a room</option>
-            {(reservationId ? rooms : availableRooms).map(room => (
-              <option key={room.id} value={room.id}>
-                {room.room_number} - {room.name} (${room.price_per_night}/night)
-              </option>
-            ))}
-          </select>
-        </div>
+        <>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Select Room</label>
+            <select
+              value={formData.room_id}
+              onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+            >
+              <option value="">Select a room</option>
+              {(reservationId ? rooms : availableRooms).map(room => (
+                <option key={room.id} value={room.id}>
+                  {room.room_number} - {room.name} (${room.price_per_night}/night)
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Reservation Source</label>
+            <select
+              value={formData.source}
+              onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+            >
+              <option value="direct">Direct Booking</option>
+              <option value="booking">Booking.com</option>
+              <option value="expedia">Expedia</option>
+              <option value="airbnb">Airbnb</option>
+              <option value="travel_agent">Travel Agent</option>
+              <option value="phone">Phone Reservation</option>
+              <option value="walkin">Walk-in</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </>
       )}
 
       <div>
@@ -390,6 +432,55 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
         </div>
       </div>
 
+      {/* Additional Guests */}
+      {formData.num_guests > 1 && (
+        <div className="border-t pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Additional Guests</h3>
+            <button
+              type="button"
+              onClick={() => setAdditionalGuests([...additionalGuests, ''])}
+              className="text-sm px-3 py-1 bg-lavender-pale text-lavender-deep rounded-lg hover:bg-lavender-medium hover:text-white transition-colors"
+            >
+              + Add Guest
+            </button>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">Add the names of other guests staying in this room</p>
+          <div className="space-y-3">
+            {additionalGuests.map((guest, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  type="text"
+                  value={guest}
+                  onChange={(e) => {
+                    const updated = [...additionalGuests]
+                    updated[index] = e.target.value
+                    setAdditionalGuests(updated)
+                  }}
+                  placeholder={`Guest ${index + 2} full name`}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = additionalGuests.filter((_, i) => i !== index)
+                    setAdditionalGuests(updated)
+                  }}
+                  className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+            {additionalGuests.length === 0 && (
+              <p className="text-sm text-gray-400 italic">No additional guests added yet</p>
+            )}
+          </div>
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Special Requests</label>
         <textarea
@@ -410,9 +501,55 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
             <span>Nights: {nights}</span>
             <span>${(totalPrice || 0).toFixed(2)}</span>
           </div>
-          <div className="flex justify-between items-center font-bold text-lg pt-2 border-t">
+          
+          {/* Custom Total Option */}
+          <div className="pt-3 mt-3 border-t border-lavender-medium/30">
+            <label className="flex items-center gap-2 cursor-pointer mb-2">
+              <input
+                type="checkbox"
+                checked={useCustomTotal}
+                onChange={(e) => {
+                  setUseCustomTotal(e.target.checked)
+                  if (!e.target.checked) {
+                    setCustomTotal('')
+                  }
+                }}
+                className="w-4 h-4 rounded border-gray-300 text-lavender-deep focus:ring-lavender-medium"
+              />
+              <span className="text-sm font-medium">Use custom total</span>
+            </label>
+            {useCustomTotal && (
+              <div className="mt-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={customTotal}
+                    onChange={(e) => setCustomTotal(e.target.value)}
+                    placeholder="Enter custom amount"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Override calculated price (e.g., for discounts or OTA rates)
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-between items-center font-bold text-lg pt-3 mt-3 border-t border-lavender-medium/50">
             <span>Total</span>
-            <span>${(totalPrice || 0).toFixed(2)}</span>
+            <span className={useCustomTotal && customTotal ? 'text-green-700' : ''}>
+              ${useCustomTotal && customTotal 
+                ? parseFloat(customTotal).toFixed(2) 
+                : (totalPrice || 0).toFixed(2)
+              }
+              {useCustomTotal && customTotal && (
+                <span className="text-xs font-normal text-gray-500 ml-1">(custom)</span>
+              )}
+            </span>
           </div>
         </div>
       )}

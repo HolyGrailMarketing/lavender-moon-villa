@@ -12,7 +12,7 @@ WIPAY_API_URL=https://jm.wipayfinancial.com/plugins/payments/request
 WIPAY_ACCOUNT_NUMBER=your_account_number
 WIPAY_API_KEY=your_api_key
 WIPAY_COUNTRY_CODE=JM  # ISO 3166-1 alpha-2 country code (JM for Jamaica)
-WIPAY_ENVIRONMENT=test  # 'live' for production, 'test' for sandbox (defaults to 'test' if not set)
+WIPAY_ENVIRONMENT=sandbox  # 'live' for production, 'sandbox' for testing (defaults to 'sandbox' if not set)
 
 # Base URL for callbacks and origin field (REQUIRED for production)
 # This is used for the WiPay 'origin' field and callback URLs

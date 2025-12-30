@@ -58,7 +58,18 @@ export async function PATCH(
     }
 
     const data = await request.json()
-    const { room_id, check_in, check_out, num_guests, total_price, status, special_requests } = data
+    const { 
+      room_id, 
+      check_in, 
+      check_out, 
+      num_guests, 
+      total_price, 
+      status, 
+      special_requests,
+      source,
+      use_custom_total,
+      additional_guests
+    } = data
 
     // Get current reservation data for comparison
     const currentReservation = await sql`
@@ -114,6 +125,9 @@ export async function PATCH(
         total_price = COALESCE(${total_price}, total_price),
         status = COALESCE(${status}, status),
         special_requests = COALESCE(${special_requests}, special_requests),
+        source = COALESCE(${source}, source),
+        use_custom_total = COALESCE(${use_custom_total}, use_custom_total),
+        additional_guests = COALESCE(${additional_guests}, additional_guests),
         updated_at = NOW()
       WHERE id = ${params.id}
       RETURNING *
