@@ -9,7 +9,7 @@ const WIPAY_API_URL = process.env.WIPAY_API_URL || 'https://jm.wipayfinancial.co
 const WIPAY_ACCOUNT_NUMBER = process.env.WIPAY_ACCOUNT_NUMBER || ''
 const WIPAY_API_KEY = process.env.WIPAY_API_KEY || ''
 const WIPAY_COUNTRY_CODE = process.env.WIPAY_COUNTRY_CODE || 'JM' // ISO 3166-1 alpha-2 country code
-const WIPAY_ENVIRONMENT = process.env.WIPAY_ENVIRONMENT || 'live' // 'live' for production, 'test' for sandbox
+const WIPAY_ENVIRONMENT = process.env.WIPAY_ENVIRONMENT || 'test' // 'live' for production, 'test' for sandbox
 
 // Generate WiPay payment hash
 function generateWipayHash(params: Record<string, string>, apiKey: string): string {
