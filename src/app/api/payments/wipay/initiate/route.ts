@@ -10,6 +10,7 @@ const WIPAY_ACCOUNT_NUMBER = process.env.WIPAY_ACCOUNT_NUMBER || ''
 const WIPAY_API_KEY = process.env.WIPAY_API_KEY || ''
 const WIPAY_COUNTRY_CODE = process.env.WIPAY_COUNTRY_CODE || 'JM' // ISO 3166-1 alpha-2 country code
 const WIPAY_ENVIRONMENT = process.env.WIPAY_ENVIRONMENT || 'sandbox' // 'live' for production, 'sandbox' for testing
+const WIPAY_FEE_STRUCTURE = process.env.WIPAY_FEE_STRUCTURE || 'merchant_absorb' // 'customer_pay', 'split', or 'merchant_absorb'
 
 // Generate WiPay payment hash
 function generateWipayHash(params: Record<string, string>, apiKey: string): string {
@@ -76,6 +77,8 @@ export async function POST(request: Request) {
       currency: currency,
       country_code: WIPAY_COUNTRY_CODE, // WiPay requires country_code field (ISO 3166-1 alpha-2)
       environment: WIPAY_ENVIRONMENT, // WiPay requires environment field ('live' for production, 'sandbox' for testing)
+      fee_structure: WIPAY_FEE_STRUCTURE, // WiPay requires fee_structure field ('customer_pay', 'split', or 'merchant_absorb')
+      method: 'credit_card', // WiPay requires method field ('credit_card' - supports both credit and debit cards)
       origin: origin, // WiPay requires origin field (domain name only, no protocol or paths)
       first_name: customer_name.split(' ')[0] || customer_name,
       last_name: customer_name.split(' ').slice(1).join(' ') || '',
