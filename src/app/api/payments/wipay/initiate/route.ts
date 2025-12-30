@@ -53,6 +53,18 @@ export async function POST(request: Request) {
     const orderId = `RES-${reservation_id}-${Date.now()}`
     const currency = 'JMD' // Jamaican Dollar
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    
+    // Extract domain name for origin field (WiPay requires only domain, no protocol or paths)
+    // Format: example.com or subdomain.example.com
+    let origin = 'localhost'
+    try {
+      const url = new URL(baseUrl)
+      origin = url.hostname.replace(/^www\./, '') // Remove www. prefix if present
+    } catch (e) {
+      // If baseUrl is not a valid URL, try to extract domain manually
+      origin = baseUrl.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0].split(':')[0]
+    }
+    
     // Format amount to 2 decimal places as required by WiPay
     const totalAmount = parseFloat(amount.toString()).toFixed(2)
     const paymentParams: Record<string, string> = {
@@ -62,7 +74,7 @@ export async function POST(request: Request) {
       total: totalAmount, // WiPay requires total field (must be formatted with 2 decimal places)
       currency: currency,
       country_code: WIPAY_COUNTRY_CODE, // WiPay requires country_code field (ISO 3166-1 alpha-2)
-      origin: baseUrl, // WiPay requires origin field (website URL)
+      origin: origin, // WiPay requires origin field (domain name only, no protocol or paths)
       first_name: customer_name.split(' ')[0] || customer_name,
       last_name: customer_name.split(' ').slice(1).join(' ') || '',
       email: customer_email,
