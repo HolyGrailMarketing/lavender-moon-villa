@@ -139,3 +139,5 @@ In development, if `RESEND_API_KEY` is not set, emails will be logged to the con
 - Resend Support: support@resend.com
 - Check Vercel function logs for email sending errors
 
+
+

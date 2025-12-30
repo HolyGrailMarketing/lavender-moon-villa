@@ -227,3 +227,5 @@ export function getRooms(): RoomData[] {
   return roomsData.filter(room => room.type === 'room')
 }
 
+
+
