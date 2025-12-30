@@ -9,6 +9,7 @@ const WIPAY_API_URL = process.env.WIPAY_API_URL || 'https://jm.wipayfinancial.co
 const WIPAY_ACCOUNT_NUMBER = process.env.WIPAY_ACCOUNT_NUMBER || ''
 const WIPAY_API_KEY = process.env.WIPAY_API_KEY || ''
 const WIPAY_COUNTRY_CODE = process.env.WIPAY_COUNTRY_CODE || 'JM' // ISO 3166-1 alpha-2 country code
+const WIPAY_ENVIRONMENT = process.env.WIPAY_ENVIRONMENT || 'production' // 'production' or 'sandbox'
 
 // Generate WiPay payment hash
 function generateWipayHash(params: Record<string, string>, apiKey: string): string {
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
       total: totalAmount, // WiPay requires total field (must be formatted with 2 decimal places)
       currency: currency,
       country_code: WIPAY_COUNTRY_CODE, // WiPay requires country_code field (ISO 3166-1 alpha-2)
+      environment: WIPAY_ENVIRONMENT, // WiPay requires environment field ('production' or 'sandbox')
       origin: origin, // WiPay requires origin field (domain name only, no protocol or paths)
       first_name: customer_name.split(' ')[0] || customer_name,
       last_name: customer_name.split(' ').slice(1).join(' ') || '',

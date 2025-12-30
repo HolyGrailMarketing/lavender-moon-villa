@@ -12,6 +12,7 @@ WIPAY_API_URL=https://jm.wipayfinancial.com/plugins/payments/request
 WIPAY_ACCOUNT_NUMBER=your_account_number
 WIPAY_API_KEY=your_api_key
 WIPAY_COUNTRY_CODE=JM  # ISO 3166-1 alpha-2 country code (JM for Jamaica)
+WIPAY_ENVIRONMENT=production  # 'production' or 'sandbox' (defaults to 'production' if not set)
 
 # Base URL for callbacks and origin field (REQUIRED for production)
 # This is used for the WiPay 'origin' field and callback URLs
@@ -49,7 +50,8 @@ ADD COLUMN IF NOT EXISTS payment_date TIMESTAMP;
      - `amount` & `total` - Payment amount (formatted to 2 decimal places)
      - `currency` - JMD (Jamaican Dollar)
      - `country_code` - ISO 3166-1 alpha-2 code (e.g., JM)
-     - `origin` - Your website URL (NEXT_PUBLIC_BASE_URL)
+     - `environment` - 'production' or 'sandbox' (REQUIRED)
+     - `origin` - Domain name only (e.g., example.com) - no protocol or paths (REQUIRED)
      - `first_name`, `last_name`, `email`, `phone` - Customer info
      - `return_url`, `cancel_url` - Callback URLs
      - `hash` - SHA-256 hash for security verification
