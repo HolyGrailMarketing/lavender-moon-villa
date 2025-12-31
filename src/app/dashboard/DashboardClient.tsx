@@ -93,6 +93,44 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
     return ''
   }
 
+  // Helper function to format dates for display without timezone shifts
+  const formatDateForDisplay = (dateValue: string | Date | null | undefined): string => {
+    if (!dateValue) return '-'
+    
+    // Extract date part from string before parsing to avoid timezone issues
+    let dateStr: string
+    if (typeof dateValue === 'string') {
+      dateStr = dateValue
+    } else {
+      // For Date objects, convert to ISO string first
+      dateStr = dateValue.toISOString()
+    }
+    
+    // Extract date part if it includes time
+    if (dateStr.includes('T')) {
+      dateStr = dateStr.split('T')[0]
+    }
+    
+    // Extract YYYY-MM-DD pattern from the string
+    const match = dateStr.match(/(\d{4})-(\d{2})-(\d{2})/)
+    if (match) {
+      // Parse the date components directly using local timezone to avoid shifts
+      // This ensures the date shown matches what's stored in the database
+      const year = parseInt(match[1])
+      const month = parseInt(match[2]) - 1 // JavaScript months are 0-indexed
+      const day = parseInt(match[3])
+      const date = new Date(year, month, day)
+      return date.toLocaleDateString()
+    }
+    
+    // Fallback: try regular Date parsing (may have timezone issues)
+    try {
+      return new Date(dateValue).toLocaleDateString()
+    } catch (e) {
+      return '-'
+    }
+  }
+
   // Get today's date in YYYY-MM-DD format
   const getToday = (): string => {
     const today = new Date()
@@ -559,10 +597,10 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                 </td>
                                 <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{r.room_number}</td>
                                 <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">
-                                  {r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}
+                                  {formatDateForDisplay(r.created_at)}
                                 </td>
-                                <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{new Date(r.check_in).toLocaleDateString()}</td>
-                                <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{new Date(r.check_out).toLocaleDateString()}</td>
+                                <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{formatDateForDisplay(r.check_in)}</td>
+                                <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{formatDateForDisplay(r.check_out)}</td>
                                 <td className="px-4 md:px-6 py-4">
                                   <span className={`px-2 py-1 text-xs rounded-full ${
                                     r.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
