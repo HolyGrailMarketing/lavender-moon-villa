@@ -104,10 +104,14 @@ export async function GET(request: Request) {
         const reservationData = await sql`
           SELECT 
             r.id,
+            r.reservation_id,
             r.check_in,
             r.check_out,
             r.num_guests,
             r.total_price,
+            r.amount_paid,
+            r.service_charge,
+            r.additional_items,
             r.special_requests,
             r.status,
             rm.name as room_name,
@@ -122,16 +126,23 @@ export async function GET(request: Request) {
 
         if (reservationData.length > 0) {
           const res = reservationData[0]
+          const amountPaid = parseFloat(res.amount_paid as string || '0')
+          const totalPrice = parseFloat(res.total_price as string)
           await sendBookingConfirmation({
             guestName: res.guest_name as string,
             guestEmail: res.guest_email as string,
             reservationId: res.id as number,
+            reservationIdFormatted: res.reservation_id as string,
             roomName: res.room_name as string,
             roomNumber: res.room_number as string,
             checkIn: res.check_in as string,
             checkOut: res.check_out as string,
             numGuests: res.num_guests as number,
-            totalPrice: parseFloat(res.total_price as string),
+            totalPrice: totalPrice,
+            amountPaid: amountPaid,
+            outstandingBalance: totalPrice - amountPaid,
+            serviceCharge: parseFloat(res.service_charge as string || '0'),
+            additionalItems: res.additional_items ? JSON.parse(JSON.stringify(res.additional_items)) : [],
             specialRequests: res.special_requests as string | undefined,
             status: res.status as string,
           })

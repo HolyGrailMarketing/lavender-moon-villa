@@ -18,6 +18,10 @@ export async function GET(
     const reservation = await sql`
       SELECT 
         r.*,
+        r.reservation_id,
+        r.service_charge,
+        r.additional_items,
+        r.amount_paid,
         rm.room_number,
         rm.name as room_name,
         g.id as guest_id,
@@ -68,7 +72,10 @@ export async function PATCH(
       special_requests,
       source,
       use_custom_total,
-      additional_guests
+      additional_guests,
+      service_charge,
+      additional_items,
+      amount_paid
     } = data
 
     // Get current reservation data for comparison
@@ -128,6 +135,9 @@ export async function PATCH(
         source = COALESCE(${source}, source),
         use_custom_total = COALESCE(${use_custom_total}, use_custom_total),
         additional_guests = COALESCE(${additional_guests}, additional_guests),
+        service_charge = COALESCE(${service_charge}, service_charge),
+        additional_items = COALESCE(${additional_items ? JSON.stringify(additional_items) : null}::jsonb, additional_items),
+        amount_paid = COALESCE(${amount_paid}, amount_paid),
         updated_at = NOW()
       WHERE id = ${params.id}
       RETURNING *

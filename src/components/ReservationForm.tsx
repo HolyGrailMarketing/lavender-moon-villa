@@ -38,6 +38,9 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
   const [useCustomTotal, setUseCustomTotal] = useState(false)
   const [customTotal, setCustomTotal] = useState('')
   const [additionalGuests, setAdditionalGuests] = useState<string[]>([])
+  const [serviceChargeEnabled, setServiceChargeEnabled] = useState(true) // Default to enabled
+  const [additionalItems, setAdditionalItems] = useState<Array<{ description: string; amount: number }>>([])
+  const [amountPaid, setAmountPaid] = useState('')
   const [formData, setFormData] = useState({
     check_in: '',
     check_out: '',
@@ -120,6 +123,20 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
             setAdditionalGuests([])
           }
         }
+        // Load service charge
+        setServiceChargeEnabled(data.service_charge > 0)
+        // Load additional items
+        if (data.additional_items) {
+          try {
+            setAdditionalItems(Array.isArray(data.additional_items) ? data.additional_items : JSON.parse(data.additional_items))
+          } catch (e) {
+            setAdditionalItems([])
+          }
+        }
+        // Load amount paid
+        if (data.amount_paid) {
+          setAmountPaid(data.amount_paid.toString())
+        }
         // Set available rooms to all rooms when editing
         setAvailableRooms(rooms)
       }
@@ -186,7 +203,16 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
         (1000 * 60 * 60 * 24)
       )
       const calculatedPrice = Number(selectedRoom.price_per_night) * nights
-      const finalPrice = useCustomTotal && customTotal ? parseFloat(customTotal) : calculatedPrice
+      const basePrice = useCustomTotal && customTotal ? parseFloat(customTotal) : calculatedPrice
+      
+      // Calculate service charge (15% of base price)
+      const serviceChargeAmount = serviceChargeEnabled ? basePrice * 0.15 : 0
+      
+      // Calculate additional items total
+      const additionalItemsTotal = additionalItems.reduce((sum, item) => sum + (item.amount || 0), 0)
+      
+      // Calculate final total
+      const finalPrice = basePrice + serviceChargeAmount + additionalItemsTotal
 
       // Create or update reservation
       const url = reservationId 
@@ -204,6 +230,9 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
         source: formData.source,
         use_custom_total: useCustomTotal,
         additional_guests: additionalGuests.length > 0 ? JSON.stringify(additionalGuests) : null,
+        service_charge: serviceChargeAmount,
+        additional_items: additionalItems.length > 0 ? additionalItems : [],
+        amount_paid: amountPaid ? parseFloat(amountPaid) : 0,
       }
 
       if (!reservationId) {
@@ -240,7 +269,13 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
         (1000 * 60 * 60 * 24)
       )
     : 0
-  const totalPrice = selectedRoom ? Number(selectedRoom.price_per_night) * nights : 0
+  const basePrice = selectedRoom ? Number(selectedRoom.price_per_night) * nights : 0
+  const roomPrice = useCustomTotal && customTotal ? parseFloat(customTotal) : basePrice
+  const serviceChargeAmount = serviceChargeEnabled ? roomPrice * 0.15 : 0
+  const additionalItemsTotal = additionalItems.reduce((sum, item) => sum + (item.amount || 0), 0)
+  const totalPrice = roomPrice + serviceChargeAmount + additionalItemsTotal
+  const paidAmount = amountPaid ? parseFloat(amountPaid) : 0
+  const outstandingBalance = totalPrice - paidAmount
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
@@ -492,64 +527,174 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
       </div>
 
       {selectedRoom && nights > 0 && (
-        <div className="bg-lavender-pale p-4 rounded-lg">
-          <div className="flex justify-between items-center mb-2">
-            <span>Room: {selectedRoom.room_number} - {selectedRoom.name}</span>
-            <span>${Number(selectedRoom.price_per_night).toFixed(2)}/night</span>
-          </div>
-          <div className="flex justify-between items-center mb-2">
-            <span>Nights: {nights}</span>
-            <span>${(totalPrice || 0).toFixed(2)}</span>
-          </div>
+        <div className="bg-lavender-pale p-4 md:p-6 rounded-lg">
+          <h3 className="font-semibold text-gray-800 mb-4">Pricing Summary</h3>
           
-          {/* Custom Total Option */}
-          <div className="pt-3 mt-3 border-t border-lavender-medium/30">
-            <label className="flex items-center gap-2 cursor-pointer mb-2">
-              <input
-                type="checkbox"
-                checked={useCustomTotal}
-                onChange={(e) => {
-                  setUseCustomTotal(e.target.checked)
-                  if (!e.target.checked) {
-                    setCustomTotal('')
-                  }
-                }}
-                className="w-4 h-4 rounded border-gray-300 text-lavender-deep focus:ring-lavender-medium"
-              />
-              <span className="text-sm font-medium">Use custom total</span>
-            </label>
-            {useCustomTotal && (
-              <div className="mt-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">$</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={customTotal}
-                    onChange={(e) => setCustomTotal(e.target.value)}
-                    placeholder="Enter custom amount"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
-                  />
+          <div className="space-y-3 mb-4">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">Room: {selectedRoom.room_number} - {selectedRoom.name}</span>
+              <span className="font-medium">${Number(selectedRoom.price_per_night).toFixed(2)}/night</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">Nights: {nights}</span>
+              <span className="font-medium">${roomPrice.toFixed(2)}</span>
+            </div>
+            
+            {/* Custom Total Option */}
+            <div className="pt-2 border-t border-lavender-medium/20">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useCustomTotal}
+                  onChange={(e) => {
+                    setUseCustomTotal(e.target.checked)
+                    if (!e.target.checked) {
+                      setCustomTotal('')
+                    }
+                  }}
+                  className="w-4 h-4 rounded border-gray-300 text-lavender-deep focus:ring-lavender-medium"
+                />
+                <span className="text-sm font-medium text-gray-700">Use custom room price</span>
+              </label>
+              {useCustomTotal && (
+                <div className="mt-2 ml-6">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={customTotal}
+                      onChange={(e) => setCustomTotal(e.target.value)}
+                      placeholder="Enter custom amount"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent text-sm"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Override calculated price (e.g., for discounts or OTA rates)
+                  </p>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  Override calculated price (e.g., for discounts or OTA rates)
-                </p>
+              )}
+            </div>
+
+            {/* Service Charge */}
+            <div className="pt-2 border-t border-lavender-medium/20">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={serviceChargeEnabled}
+                  onChange={(e) => setServiceChargeEnabled(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-lavender-deep focus:ring-lavender-medium"
+                />
+                <span className="text-sm font-medium text-gray-700">Add Service Charge (15%)</span>
+              </label>
+              {serviceChargeEnabled && (
+                <div className="flex justify-between items-center mt-1 ml-6">
+                  <span className="text-sm text-gray-600">Service Charge (15%):</span>
+                  <span className="text-sm font-medium">${serviceChargeAmount.toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Additional Items */}
+            <div className="pt-2 border-t border-lavender-medium/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Additional Items</span>
+                <button
+                  type="button"
+                  onClick={() => setAdditionalItems([...additionalItems, { description: '', amount: 0 }])}
+                  className="text-xs px-2 py-1 bg-lavender-medium text-white rounded hover:bg-lavender-deep transition-colors"
+                >
+                  + Add Item
+                </button>
               </div>
-            )}
+              {additionalItems.length > 0 && (
+                <div className="space-y-2 ml-6">
+                  {additionalItems.map((item, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        value={item.description}
+                        onChange={(e) => {
+                          const updated = [...additionalItems]
+                          updated[index].description = e.target.value
+                          setAdditionalItems(updated)
+                        }}
+                        placeholder="Description (e.g., Room Service, Drinks)"
+                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                      />
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm">$</span>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={item.amount}
+                          onChange={(e) => {
+                            const updated = [...additionalItems]
+                            updated[index].amount = parseFloat(e.target.value) || 0
+                            setAdditionalItems(updated)
+                          }}
+                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = additionalItems.filter((_, i) => i !== index)
+                          setAdditionalItems(updated)
+                        }}
+                        className="text-red-600 hover:text-red-800 p-1"
+                        title="Remove item"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                  {additionalItemsTotal > 0 && (
+                    <div className="flex justify-between items-center text-sm pt-1 border-t border-lavender-medium/20">
+                      <span className="text-gray-600">Additional Items Total:</span>
+                      <span className="font-medium">${additionalItemsTotal.toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex justify-between items-center font-bold text-lg pt-3 mt-3 border-t border-lavender-medium/50">
-            <span>Total</span>
-            <span className={useCustomTotal && customTotal ? 'text-green-700' : ''}>
-              ${useCustomTotal && customTotal 
-                ? parseFloat(customTotal).toFixed(2) 
-                : (totalPrice || 0).toFixed(2)
-              }
-              {useCustomTotal && customTotal && (
-                <span className="text-xs font-normal text-gray-500 ml-1">(custom)</span>
-              )}
-            </span>
+          {/* Total Breakdown */}
+          <div className="pt-4 mt-4 border-t-2 border-lavender-medium/50 space-y-2">
+            <div className="flex justify-between items-center font-bold text-lg">
+              <span>Total Amount:</span>
+              <span className="text-lavender-deep">${totalPrice.toFixed(2)}</span>
+            </div>
+            
+            {/* Amount Paid */}
+            <div className="pt-2 border-t border-lavender-medium/30">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Amount Paid</label>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={amountPaid}
+                  onChange={(e) => setAmountPaid(e.target.value)}
+                  placeholder="0.00"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Outstanding Balance */}
+            <div className="flex justify-between items-center font-semibold pt-2 border-t border-lavender-medium/30">
+              <span>Outstanding Balance:</span>
+              <span className={outstandingBalance > 0 ? 'text-red-600' : 'text-green-600'}>
+                ${outstandingBalance.toFixed(2)}
+              </span>
+            </div>
           </div>
         </div>
       )}

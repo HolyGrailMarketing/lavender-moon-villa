@@ -3,6 +3,8 @@
  * Supports Resend API (recommended) or SMTP fallback
  */
 
+import { RESERVATION_DISCLAIMERS } from './disclaimers'
+
 type EmailData = {
   to: string
   subject: string
@@ -14,14 +16,19 @@ type ReservationEmailData = {
   guestName: string
   guestEmail: string
   reservationId: number
+  reservationIdFormatted?: string // LMV22927-YYMMDD-NN format
   roomName: string
   roomNumber: string
   checkIn: string
   checkOut: string
   numGuests: number
   totalPrice: number
+  amountPaid?: number
+  outstandingBalance?: number
   specialRequests?: string
   status: string
+  serviceCharge?: number
+  additionalItems?: Array<{ description: string; amount: number }>
 }
 
 /**
@@ -81,6 +88,15 @@ function generateBookingConfirmationEmail(data: ReservationEmailData): string {
     day: 'numeric',
   })
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://lavendermoon.net'
+  const reservationIdDisplay = data.reservationIdFormatted || `#${data.reservationId}`
+  const amountPaid = data.amountPaid || 0
+  const outstandingBalance = data.outstandingBalance !== undefined ? data.outstandingBalance : (data.totalPrice - amountPaid)
+
+  // Calculate subtotal (total minus service charge)
+  const serviceChargeAmount = data.serviceCharge || 0
+  const subtotal = data.totalPrice - serviceChargeAmount
+
   return `
     <!DOCTYPE html>
     <html>
@@ -89,71 +105,120 @@ function generateBookingConfirmationEmail(data: ReservationEmailData): string {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Booking Confirmation - Lavender Moon Villas</title>
     </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #6B4E8E; font-size: 28px; margin: 0;">Lavender Moon Villas</h1>
-        <p style="color: #888; font-style: italic; margin: 5px 0;">Where tranquility meets luxury</p>
-      </div>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 700px; margin: 0 auto; padding: 20px; background: #f5f5f5;">
+      <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <!-- Header with Logo -->
+        <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #6B4E8E; padding-bottom: 20px;">
+          <img src="${baseUrl}/Pictures/Logo.png" alt="Lavender Moon Villas" style="max-width: 150px; height: auto; margin-bottom: 10px;" />
+          <h1 style="color: #6B4E8E; font-size: 28px; margin: 10px 0 5px 0;">Lavender Moon Villas</h1>
+          <p style="color: #888; font-style: italic; margin: 5px 0; font-size: 14px;">Where tranquility meets luxury</p>
+          <div style="margin-top: 15px; font-size: 12px; color: #666;">
+            <p style="margin: 3px 0;">📧 reservations@lavendermoon.net</p>
+            <p style="margin: 3px 0;">📱 WhatsApp: +1 (876) 506-8440</p>
+            <p style="margin: 3px 0;">🌐 <a href="${baseUrl}" style="color: #6B4E8E;">${baseUrl}</a></p>
+          </div>
+        </div>
 
-      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h2 style="color: #6B4E8E; margin-top: 0;">Booking Confirmed!</h2>
-        <p>Dear ${data.guestName},</p>
-        <p>Thank you for choosing Lavender Moon Villas. Your reservation has been confirmed!</p>
-      </div>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+          <h2 style="color: #6B4E8E; margin-top: 0; font-size: 24px;">Booking Confirmed!</h2>
+          <p style="font-size: 16px;">Dear ${data.guestName},</p>
+          <p style="font-size: 14px; color: #666;">Thank you for choosing Lavender Moon Villas. Your reservation has been confirmed!</p>
+        </div>
 
-      <div style="background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-        <h3 style="color: #6B4E8E; margin-top: 0; border-bottom: 2px solid #6B4E8E; padding-bottom: 10px;">Reservation Details</h3>
-        
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="padding: 8px 0; font-weight: bold; width: 40%;">Reservation ID:</td>
-            <td style="padding: 8px 0;">#${data.reservationId}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; font-weight: bold;">Room:</td>
-            <td style="padding: 8px 0;">${data.roomName} (${data.roomNumber})</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; font-weight: bold;">Check-in:</td>
-            <td style="padding: 8px 0;">${checkInDate}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; font-weight: bold;">Check-out:</td>
-            <td style="padding: 8px 0;">${checkOutDate}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; font-weight: bold;">Guests:</td>
-            <td style="padding: 8px 0;">${data.numGuests}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px 0; font-weight: bold;">Total Amount:</td>
-            <td style="padding: 8px 0; font-size: 18px; color: #6B4E8E; font-weight: bold;">$${data.totalPrice.toFixed(2)}</td>
-          </tr>
-        </table>
-      </div>
+        <div style="background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="color: #6B4E8E; margin-top: 0; border-bottom: 2px solid #6B4E8E; padding-bottom: 10px;">Reservation Details</h3>
+          
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 10px 0; font-weight: bold; width: 40%; border-bottom: 1px solid #eee;">Reservation ID:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                <a href="${baseUrl}/reservations/${data.reservationId}" style="color: #6B4E8E; text-decoration: none; font-weight: bold;">${reservationIdDisplay}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; font-weight: bold; border-bottom: 1px solid #eee;">Room:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #eee;">${data.roomName} (${data.roomNumber})</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; font-weight: bold; border-bottom: 1px solid #eee;">Check-in:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #eee;">${checkInDate} at 3:00 PM</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; font-weight: bold; border-bottom: 1px solid #eee;">Check-out:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #eee;">${checkOutDate} by 11:00 AM</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px 0; font-weight: bold; border-bottom: 1px solid #eee;">Guests:</td>
+              <td style="padding: 10px 0; border-bottom: 1px solid #eee;">${data.numGuests}</td>
+            </tr>
+          </table>
+        </div>
 
-      ${data.specialRequests ? `
-      <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px;">
-        <strong>Special Requests:</strong>
-        <p style="margin: 5px 0 0 0;">${data.specialRequests}</p>
-      </div>
-      ` : ''}
+        <!-- Pricing Breakdown -->
+        <div style="background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+          <h3 style="color: #6B4E8E; margin-top: 0; border-bottom: 2px solid #6B4E8E; padding-bottom: 10px;">Payment Summary</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; text-align: right; width: 70%;">Subtotal:</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: bold;">$${subtotal.toFixed(2)}</td>
+            </tr>
+            ${serviceChargeAmount > 0 ? `
+            <tr>
+              <td style="padding: 8px 0; text-align: right;">Service Charge (15%):</td>
+              <td style="padding: 8px 0; text-align: right;">$${serviceChargeAmount.toFixed(2)}</td>
+            </tr>
+            ` : ''}
+            ${data.additionalItems && data.additionalItems.length > 0 ? data.additionalItems.map((item: any) => `
+            <tr>
+              <td style="padding: 8px 0; text-align: right;">${item.description}:</td>
+              <td style="padding: 8px 0; text-align: right;">$${item.amount.toFixed(2)}</td>
+            </tr>
+            `).join('') : ''}
+            <tr style="border-top: 2px solid #6B4E8E;">
+              <td style="padding: 12px 0; text-align: right; font-weight: bold; font-size: 16px;">Total Amount:</td>
+              <td style="padding: 12px 0; text-align: right; font-weight: bold; font-size: 18px; color: #6B4E8E;">$${data.totalPrice.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; text-align: right; color: #666;">Amount Paid:</td>
+              <td style="padding: 8px 0; text-align: right; color: #666;">$${amountPaid.toFixed(2)}</td>
+            </tr>
+            <tr style="border-top: 1px solid #ddd;">
+              <td style="padding: 12px 0; text-align: right; font-weight: bold;">Outstanding Balance:</td>
+              <td style="padding: 12px 0; text-align: right; font-weight: bold; color: ${outstandingBalance > 0 ? '#d32f2f' : '#4caf50'};">
+                $${outstandingBalance.toFixed(2)}
+              </td>
+            </tr>
+          </table>
+        </div>
 
-      <div style="background: #e8f0eb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3 style="color: #6B4E8E; margin-top: 0;">What's Next?</h3>
-        <ul style="margin: 0; padding-left: 20px;">
-          <li>We look forward to welcoming you to Lavender Moon Villas</li>
-          <li>Check-in time is from 3:00 PM</li>
-          <li>Check-out time is by 11:00 AM</li>
-          <li>If you have any questions, please contact us at reservations@lavendermoon.net or +1 (876) 516-1421</li>
-        </ul>
-      </div>
+        ${data.specialRequests ? `
+        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px;">
+          <strong>Special Requests:</strong>
+          <p style="margin: 5px 0 0 0;">${data.specialRequests}</p>
+        </div>
+        ` : ''}
 
-      <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #888; font-size: 12px;">
-        <p><strong>Lavender Moon Villas</strong></p>
-        <p>Breadnut Hill, Ocho Rios, St. Ann Parish, Jamaica</p>
-        <p>Phone: +1 (876) 516-1421 | WhatsApp: +1 (876) 506-8440</p>
-        <p>Email: reservations@lavendermoon.net</p>
+        ${RESERVATION_DISCLAIMERS}
+
+        <div style="background: #e8f0eb; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+          <h3 style="color: #6B4E8E; margin-top: 0;">We Appreciate Your Feedback!</h3>
+          <p style="margin: 15px 0;">If we have exceeded your expectations, kindly leave us a favorable review:</p>
+          <p style="margin: 10px 0;">
+            <a href="https://g.page/r/YOUR_GOOGLE_REVIEW_LINK" style="display: inline-block; background: #6B4E8E; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 5px;">⭐ Review on Google</a>
+            <a href="${baseUrl}/review" style="display: inline-block; background: #8B6FAF; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 5px;">💬 Review on Website</a>
+          </p>
+          <p style="margin-top: 15px; font-size: 14px; color: #666;">Follow us on social media @lavendermoonvillas</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #888; font-size: 12px;">
+          <p><strong>Lavender Moon Villas</strong></p>
+          <p>Breadnut Hill, Ocho Rios, St. Ann Parish, Jamaica</p>
+          <p style="margin: 8px 0;">
+            📧 <a href="mailto:reservations@lavendermoon.net" style="color: #6B4E8E;">reservations@lavendermoon.net</a> | 
+            📱 WhatsApp: <a href="https://wa.me/18765068440" style="color: #6B4E8E;">+1 (876) 506-8440</a>
+          </p>
+          <p>🌐 <a href="${baseUrl}" style="color: #6B4E8E;">${baseUrl}</a></p>
+        </div>
       </div>
     </body>
     </html>
