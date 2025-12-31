@@ -617,90 +617,142 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                   <h2 className="text-xl md:text-2xl font-serif text-lavender-deep mb-4 md:mb-6">Room Status</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {rooms.map(room => (
-                      <div key={room.id} className={`p-6 rounded-xl border-2 ${
-                        room.status === 'available' ? 'bg-green-50 border-green-200' :
-                        room.status === 'occupied' ? 'bg-red-50 border-red-200' :
-                        room.status === 'cleaning' ? 'bg-yellow-50 border-yellow-200' :
-                        'bg-gray-50 border-gray-200'
-                      }`}>
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="text-lg font-semibold">{room.room_number}</h3>
-                            <p className="text-sm text-gray-600">{room.name}</p>
+                      <div key={room.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        {/* Status Header */}
+                        <div className={`px-5 py-3 ${
+                          room.status === 'available' ? 'bg-green-500' :
+                          room.status === 'occupied' ? 'bg-red-500' :
+                          room.status === 'cleaning' ? 'bg-yellow-500' :
+                          'bg-gray-500'
+                        }`}>
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h3 className="text-lg font-bold text-white">{room.room_number}</h3>
+                              <p className="text-sm text-white/80">{room.name}</p>
+                            </div>
+                            <span className="px-3 py-1 bg-white/20 rounded-full text-white text-xs font-semibold uppercase">
+                              {room.status}
+                            </span>
                           </div>
                         </div>
-                        <div className="mb-4">
-                          <label className="block text-xs text-gray-600 mb-1">Status</label>
-                          <select
-                            value={room.status}
-                            onChange={(e) => handleRoomStatusChange(room.id, e.target.value)}
-                            className={`w-full px-3 py-2 text-sm rounded-lg border-2 font-medium uppercase ${
-                              room.status === 'available' ? 'bg-green-50 border-green-300 text-green-800' :
-                              room.status === 'occupied' ? 'bg-red-50 border-red-300 text-red-800' :
-                              room.status === 'cleaning' ? 'bg-yellow-50 border-yellow-300 text-yellow-800' :
-                              'bg-gray-50 border-gray-300 text-gray-800'
-                            } focus:outline-none focus:ring-2 focus:ring-lavender-medium cursor-pointer`}
+
+                        <div className="p-5 space-y-4">
+                          {/* Price Display */}
+                          <div className="text-center py-3 bg-gray-50 rounded-lg">
+                            {editingPriceRoomId === room.id ? (
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-center gap-2 px-4">
+                                  <span className="text-xl font-semibold text-gray-600">$</span>
+                                  <input
+                                    type="number"
+                                    value={priceEditValue}
+                                    onChange={(e) => setPriceEditValue(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Escape') {
+                                        setEditingPriceRoomId(null)
+                                        setPriceEditValue('')
+                                      }
+                                    }}
+                                    autoFocus
+                                    className="w-28 px-3 py-2 border-2 border-lavender-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-lavender-medium text-xl font-bold text-center"
+                                    min="0"
+                                    step="0.01"
+                                  />
+                                  <span className="text-sm text-gray-500">/night</span>
+                                </div>
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    onClick={() => {
+                                      const price = parseFloat(priceEditValue)
+                                      if (!isNaN(price) && price >= 0) {
+                                        handleRoomPriceChange(room.id, price)
+                                      }
+                                      setEditingPriceRoomId(null)
+                                      setPriceEditValue('')
+                                    }}
+                                    className="px-4 py-1.5 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600 transition-colors"
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setEditingPriceRoomId(null)
+                                      setPriceEditValue('')
+                                    }}
+                                    className="px-4 py-1.5 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300 transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <p className="text-3xl font-bold text-lavender-deep">${room.price_per_night}</p>
+                                <p className="text-sm text-gray-500">per night</p>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Update Status */}
+                          <div>
+                            <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Update Status</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                onClick={() => handleRoomStatusChange(room.id, 'available')}
+                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                  room.status === 'available'
+                                    ? 'bg-green-500 text-white ring-2 ring-green-300'
+                                    : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
+                                }`}
+                              >
+                                Available
+                              </button>
+                              <button
+                                onClick={() => handleRoomStatusChange(room.id, 'occupied')}
+                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                  room.status === 'occupied'
+                                    ? 'bg-red-500 text-white ring-2 ring-red-300'
+                                    : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                                }`}
+                              >
+                                Occupied
+                              </button>
+                              <button
+                                onClick={() => handleRoomStatusChange(room.id, 'cleaning')}
+                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                  room.status === 'cleaning'
+                                    ? 'bg-yellow-500 text-white ring-2 ring-yellow-300'
+                                    : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-200'
+                                }`}
+                              >
+                                Cleaning
+                              </button>
+                              <button
+                                onClick={() => handleRoomStatusChange(room.id, 'maintenance')}
+                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                  room.status === 'maintenance'
+                                    ? 'bg-gray-500 text-white ring-2 ring-gray-300'
+                                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                                }`}
+                              >
+                                Maintenance
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Update Price Button */}
+                          <button
+                            onClick={() => {
+                              setEditingPriceRoomId(room.id)
+                              setPriceEditValue(room.price_per_night.toString())
+                            }}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-lavender-pale text-lavender-deep rounded-lg hover:bg-lavender-medium hover:text-white transition-all font-medium"
                           >
-                            <option value="available">Available</option>
-                            <option value="occupied">Occupied</option>
-                            <option value="cleaning">Cleaning</option>
-                            <option value="maintenance">Maintenance</option>
-                          </select>
-                        </div>
-                        <div className="mb-4">
-                          <label className="block text-xs text-gray-600 mb-1">Price per Night</label>
-                          {editingPriceRoomId === room.id ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg font-semibold">$</span>
-                              <input
-                                type="number"
-                                value={priceEditValue}
-                                onChange={(e) => setPriceEditValue(e.target.value)}
-                                onBlur={() => {
-                                  const price = parseFloat(priceEditValue)
-                                  if (!isNaN(price) && price >= 0) {
-                                    handleRoomPriceChange(room.id, price)
-                                  }
-                                  setEditingPriceRoomId(null)
-                                  setPriceEditValue('')
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    const price = parseFloat(priceEditValue)
-                                    if (!isNaN(price) && price >= 0) {
-                                      handleRoomPriceChange(room.id, price)
-                                    }
-                                    setEditingPriceRoomId(null)
-                                    setPriceEditValue('')
-                                  } else if (e.key === 'Escape') {
-                                    setEditingPriceRoomId(null)
-                                    setPriceEditValue('')
-                                  }
-                                }}
-                                autoFocus
-                                className="flex-1 px-3 py-2 border-2 border-lavender-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-lavender-medium text-lg font-semibold"
-                                min="0"
-                                step="0.01"
-                              />
-                              <span className="text-sm text-gray-500">/night</span>
-                            </div>
-                          ) : (
-                            <div 
-                              onClick={() => {
-                                setEditingPriceRoomId(room.id)
-                                setPriceEditValue(room.price_per_night.toString())
-                              }}
-                              className="flex items-center gap-1 cursor-pointer hover:bg-lavender-pale rounded px-2 py-1 -mx-2 -my-1 transition-colors group"
-                            >
-                              <p className="text-2xl font-semibold text-lavender-deep group-hover:text-lavender-medium">
-                                ${room.price_per_night}
-                              </p>
-                              <span className="text-sm font-normal text-gray-500">/night</span>
-                              <svg className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </div>
-                          )}
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            Update Price
+                          </button>
                         </div>
                       </div>
                     ))}
