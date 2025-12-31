@@ -287,7 +287,7 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
             value={formData.check_in}
             onChange={(e) => setFormData({ ...formData, check_in: e.target.value })}
             required
-            min={new Date().toISOString().split('T')[0]}
+            min={reservationId ? undefined : new Date().toISOString().split('T')[0]}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
           />
         </div>

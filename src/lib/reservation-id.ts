@@ -39,3 +39,5 @@ export async function generateReservationId(checkInDate: string): Promise<string
   return `${PREFIX}-${datePart}-${sequenceNumber}`
 }
 
+
+
