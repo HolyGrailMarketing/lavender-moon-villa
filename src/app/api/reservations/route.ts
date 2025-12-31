@@ -29,6 +29,7 @@ export async function GET() {
         r.service_charge,
         r.additional_items,
         r.amount_paid,
+        r.created_at,
         rm.room_number,
         rm.name as room_name,
         g.first_name || ' ' || g.last_name as guest_name,

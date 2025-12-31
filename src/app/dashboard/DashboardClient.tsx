@@ -18,6 +18,7 @@ type Reservation = {
   num_guests: number
   total_price: number | string
   special_requests?: string
+  created_at?: string
 }
 
 type Room = {
@@ -529,6 +530,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                           <tr>
                             <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guest</th>
                             <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
+                            <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                             <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check In</th>
                             <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check Out</th>
                             <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -538,7 +540,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                         <tbody className="divide-y divide-gray-200">
                           {reservations.length === 0 ? (
                             <tr>
-                              <td colSpan={6} className="px-4 md:px-6 py-8 text-center text-gray-500">
+                              <td colSpan={7} className="px-4 md:px-6 py-8 text-center text-gray-500">
                                 No reservations yet
                               </td>
                             </tr>
@@ -556,6 +558,9 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                   </div>
                                 </td>
                                 <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{r.room_number}</td>
+                                <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">
+                                  {r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}
+                                </td>
                                 <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{new Date(r.check_in).toLocaleDateString()}</td>
                                 <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{new Date(r.check_out).toLocaleDateString()}</td>
                                 <td className="px-4 md:px-6 py-4">
