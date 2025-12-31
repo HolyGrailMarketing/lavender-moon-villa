@@ -23,14 +23,15 @@ export async function GET(request: Request) {
     }
 
     // Find rooms that have no conflicting reservations
+    // Exclude only maintenance rooms - availability is determined by reservation dates, not current status
     const availableRooms = await sql`
       SELECT r.*
       FROM rooms r
-      WHERE r.status IN ('available', 'cleaning')
+      WHERE r.status != 'maintenance'
       AND r.id NOT IN (
         SELECT DISTINCT res.room_id
         FROM reservations res
-        WHERE res.status IN ('confirmed', 'checked_in')
+        WHERE res.status IN ('confirmed', 'checked_in', 'pending')
         AND (
           (res.check_in <= ${checkOut}::date AND res.check_out >= ${checkIn}::date)
         )

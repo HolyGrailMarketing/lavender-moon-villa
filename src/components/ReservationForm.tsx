@@ -85,6 +85,38 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
     }
   }
 
+  // Helper function to extract date in YYYY-MM-DD format, avoiding timezone issues
+  // Extracts the date part from the string BEFORE any Date object parsing
+  function extractDate(dateValue: string | Date | null | undefined): string {
+    if (!dateValue) return ''
+    
+    // Convert to string first - if it's a Date, we need to be careful about timezone
+    let dateStr: string
+    if (typeof dateValue === 'string') {
+      dateStr = dateValue
+    } else {
+      // For Date objects, extract the date part from ISO string (UTC representation)
+      dateStr = dateValue.toISOString()
+    }
+    
+    // Extract date part before any timezone conversion happens
+    // This handles formats like "2025-12-30", "2025-12-30T00:00:00.000Z", etc.
+    if (dateStr.includes('T')) {
+      return dateStr.split('T')[0]
+    }
+    
+    // If already in YYYY-MM-DD format, return as is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return dateStr
+    }
+    
+    // Try to extract YYYY-MM-DD pattern from the string
+    const match = dateStr.match(/(\d{4}-\d{2}-\d{2})/)
+    if (match) return match[1]
+    
+    return ''
+  }
+
   async function fetchReservation() {
     try {
       const res = await fetch(`/api/reservations/${reservationId}`)
@@ -93,8 +125,8 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
         const nameParts = (data.guest_name || '').split(' ')
         setGuestId(data.guest_id)
         setFormData({
-          check_in: data.check_in.split('T')[0],
-          check_out: data.check_out.split('T')[0],
+          check_in: extractDate(data.check_in),
+          check_out: extractDate(data.check_out),
           num_guests: data.num_guests,
           room_id: data.room_id.toString(),
           source: data.source || 'direct',
