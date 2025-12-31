@@ -527,91 +527,121 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
       </div>
 
       {selectedRoom && nights > 0 && (
-        <div className="bg-lavender-pale p-4 md:p-6 rounded-lg">
-          <h3 className="font-semibold text-gray-800 mb-4">Pricing Summary</h3>
-          
-          <div className="space-y-3 mb-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-700">Room: {selectedRoom.room_number} - {selectedRoom.name}</span>
-              <span className="font-medium">${Number(selectedRoom.price_per_night).toFixed(2)}/night</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-700">Nights: {nights}</span>
-              <span className="font-medium">${roomPrice.toFixed(2)}</span>
+        <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-lavender-deep to-lavender-medium px-5 py-4">
+            <h3 className="font-semibold text-white text-lg flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              Pricing Summary
+            </h3>
+          </div>
+
+          <div className="p-5 space-y-5">
+            {/* Room Details Card */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <p className="font-medium text-gray-900">{selectedRoom.name}</p>
+                  <p className="text-sm text-gray-500">Room {selectedRoom.room_number}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-lavender-deep">${Number(selectedRoom.price_per_night).toFixed(2)}</p>
+                  <p className="text-xs text-gray-500">per night</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                <span className="text-gray-600">{nights} night{nights > 1 ? 's' : ''}</span>
+                <span className="font-semibold text-gray-900">${roomPrice.toFixed(2)}</span>
+              </div>
             </div>
             
-            {/* Custom Total Option */}
-            <div className="pt-2 border-t border-lavender-medium/20">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={useCustomTotal}
-                  onChange={(e) => {
-                    setUseCustomTotal(e.target.checked)
-                    if (!e.target.checked) {
-                      setCustomTotal('')
-                    }
-                  }}
-                  className="w-4 h-4 rounded border-gray-300 text-lavender-deep focus:ring-lavender-medium"
-                />
-                <span className="text-sm font-medium text-gray-700">Use custom room price</span>
+            {/* Custom Price Toggle */}
+            <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={useCustomTotal}
+                    onChange={(e) => {
+                      setUseCustomTotal(e.target.checked)
+                      if (!e.target.checked) setCustomTotal('')
+                    }}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                </div>
+                <div>
+                  <span className="font-medium text-amber-800">Custom Room Price</span>
+                  <p className="text-xs text-amber-600">For discounts, OTA rates, or special pricing</p>
+                </div>
               </label>
               {useCustomTotal && (
-                <div className="mt-2 ml-6">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">$</span>
+                <div className="mt-3 flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
                       value={customTotal}
                       onChange={(e) => setCustomTotal(e.target.value)}
-                      placeholder="Enter custom amount"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent text-sm"
+                      placeholder="0.00"
+                      className="w-full pl-8 pr-4 py-2.5 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent bg-white font-medium"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Override calculated price (e.g., for discounts or OTA rates)
-                  </p>
                 </div>
               )}
             </div>
 
             {/* Service Charge */}
-            <div className="pt-2 border-t border-lavender-medium/20">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={serviceChargeEnabled}
-                  onChange={(e) => setServiceChargeEnabled(e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-lavender-deep focus:ring-lavender-medium"
-                />
-                <span className="text-sm font-medium text-gray-700">Add Service Charge (15%)</span>
-              </label>
-              {serviceChargeEnabled && (
-                <div className="flex justify-between items-center mt-1 ml-6">
-                  <span className="text-sm text-gray-600">Service Charge (15%):</span>
-                  <span className="text-sm font-medium">${serviceChargeAmount.toFixed(2)}</span>
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <label className="flex items-center justify-between cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={serviceChargeEnabled}
+                      onChange={(e) => setServiceChargeEnabled(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                  </div>
+                  <div>
+                    <span className="font-medium text-blue-800">Service Charge</span>
+                    <p className="text-xs text-blue-600">15% of room price</p>
+                  </div>
                 </div>
-              )}
+                {serviceChargeEnabled && (
+                  <span className="font-semibold text-blue-700">${serviceChargeAmount.toFixed(2)}</span>
+                )}
+              </label>
             </div>
 
             {/* Additional Items */}
-            <div className="pt-2 border-t border-lavender-medium/20">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Additional Items</span>
+            <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <span className="font-medium text-emerald-800">Additional Charges</span>
+                  <p className="text-xs text-emerald-600">Food, drinks, services, etc.</p>
+                </div>
                 <button
                   type="button"
                   onClick={() => setAdditionalItems([...additionalItems, { description: '', amount: 0 }])}
-                  className="text-xs px-2 py-1 bg-lavender-medium text-white rounded hover:bg-lavender-deep transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
                 >
-                  + Add Item
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add
                 </button>
               </div>
-              {additionalItems.length > 0 && (
-                <div className="space-y-2 ml-6">
+              
+              {additionalItems.length > 0 ? (
+                <div className="space-y-2">
                   {additionalItems.map((item, index) => (
-                    <div key={index} className="flex gap-2 items-center">
+                    <div key={index} className="flex gap-2 items-center bg-white rounded-lg p-2 border border-emerald-200">
                       <input
                         type="text"
                         value={item.description}
@@ -620,80 +650,103 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
                           updated[index].description = e.target.value
                           setAdditionalItems(updated)
                         }}
-                        placeholder="Description (e.g., Room Service, Drinks)"
-                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                        placeholder="Item description..."
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
                       />
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm">$</span>
+                      <div className="relative">
+                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
                         <input
                           type="number"
                           step="0.01"
                           min="0"
-                          value={item.amount}
+                          value={item.amount || ''}
                           onChange={(e) => {
                             const updated = [...additionalItems]
                             updated[index].amount = parseFloat(e.target.value) || 0
                             setAdditionalItems(updated)
                           }}
-                          className="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                          placeholder="0.00"
+                          className="w-24 pl-6 pr-2 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
                         />
                       </div>
                       <button
                         type="button"
-                        onClick={() => {
-                          const updated = additionalItems.filter((_, i) => i !== index)
-                          setAdditionalItems(updated)
-                        }}
-                        className="text-red-600 hover:text-red-800 p-1"
-                        title="Remove item"
+                        onClick={() => setAdditionalItems(additionalItems.filter((_, i) => i !== index))}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Remove"
                       >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
                     </div>
                   ))}
                   {additionalItemsTotal > 0 && (
-                    <div className="flex justify-between items-center text-sm pt-1 border-t border-lavender-medium/20">
-                      <span className="text-gray-600">Additional Items Total:</span>
-                      <span className="font-medium">${additionalItemsTotal.toFixed(2)}</span>
+                    <div className="flex justify-between items-center pt-2 mt-2 border-t border-emerald-200">
+                      <span className="text-sm text-emerald-700">Items Subtotal</span>
+                      <span className="font-semibold text-emerald-700">${additionalItemsTotal.toFixed(2)}</span>
                     </div>
                   )}
                 </div>
+              ) : (
+                <p className="text-sm text-emerald-600 italic text-center py-2">No additional items added</p>
               )}
             </div>
-          </div>
 
-          {/* Total Breakdown */}
-          <div className="pt-4 mt-4 border-t-2 border-lavender-medium/50 space-y-2">
-            <div className="flex justify-between items-center font-bold text-lg">
-              <span>Total Amount:</span>
-              <span className="text-lavender-deep">${totalPrice.toFixed(2)}</span>
-            </div>
-            
-            {/* Amount Paid */}
-            <div className="pt-2 border-t border-lavender-medium/30">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Amount Paid</label>
-              <div className="flex items-center gap-2">
-                <span className="text-lg">$</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={amountPaid}
-                  onChange={(e) => setAmountPaid(e.target.value)}
-                  placeholder="0.00"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
-                />
+            {/* Total Section */}
+            <div className="bg-gradient-to-br from-lavender-pale to-white rounded-lg p-5 border-2 border-lavender-medium">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-lg font-bold text-gray-800">Total Amount</span>
+                <span className="text-2xl font-bold text-lavender-deep">${totalPrice.toFixed(2)}</span>
               </div>
-            </div>
+              
+              {/* Payment Input */}
+              <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                  <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Amount Paid
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium text-lg">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={amountPaid}
+                    onChange={(e) => setAmountPaid(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent text-lg font-medium"
+                  />
+                </div>
+              </div>
 
-            {/* Outstanding Balance */}
-            <div className="flex justify-between items-center font-semibold pt-2 border-t border-lavender-medium/30">
-              <span>Outstanding Balance:</span>
-              <span className={outstandingBalance > 0 ? 'text-red-600' : 'text-green-600'}>
-                ${outstandingBalance.toFixed(2)}
-              </span>
+              {/* Outstanding Balance */}
+              <div className={`rounded-lg p-4 flex justify-between items-center ${
+                outstandingBalance > 0 
+                  ? 'bg-red-50 border border-red-200' 
+                  : 'bg-green-50 border border-green-200'
+              }`}>
+                <div className="flex items-center gap-2">
+                  {outstandingBalance > 0 ? (
+                    <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                  <span className={`font-semibold ${outstandingBalance > 0 ? 'text-red-700' : 'text-green-700'}`}>
+                    {outstandingBalance > 0 ? 'Balance Due' : 'Paid in Full'}
+                  </span>
+                </div>
+                <span className={`text-xl font-bold ${outstandingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  ${Math.abs(outstandingBalance).toFixed(2)}
+                  {outstandingBalance < 0 && <span className="text-sm ml-1">(credit)</span>}
+                </span>
+              </div>
             </div>
           </div>
         </div>
