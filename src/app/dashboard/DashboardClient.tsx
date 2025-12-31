@@ -544,10 +544,14 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                             </tr>
                           ) : (
                             reservations.map(r => (
-                              <tr key={r.id} className="hover:bg-gray-50">
+                              <tr 
+                                key={r.id} 
+                                onClick={() => openEditReservation(r.id)}
+                                className="hover:bg-lavender-pale/50 cursor-pointer transition-colors group"
+                              >
                                 <td className="px-4 md:px-6 py-4">
                                   <div>
-                                    <p className="font-medium text-gray-900 text-sm">{r.guest_name}</p>
+                                    <p className="font-medium text-gray-900 text-sm group-hover:text-lavender-deep transition-colors">{r.guest_name}</p>
                                     <p className="text-xs md:text-sm text-gray-500">{r.guest_email}</p>
                                   </div>
                                 </td>
@@ -565,18 +569,12 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                     {r.status}
                                   </span>
                                 </td>
-                                <td className="px-4 md:px-6 py-4">
+                                <td className="px-4 md:px-6 py-4" onClick={(e) => e.stopPropagation()}>
                                   <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                                    <button 
-                                      onClick={() => openEditReservation(r.id)}
-                                      className="text-lavender-deep hover:text-lavender-medium text-xs sm:text-sm"
-                                    >
-                                      Edit
-                                    </button>
                                     {r.status === 'confirmed' && (
                                       <button
                                         onClick={() => handleCheckIn(r.id)}
-                                        className="text-green-600 hover:text-green-700 text-xs sm:text-sm"
+                                        className="px-2 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded text-xs sm:text-sm font-medium transition-colors"
                                       >
                                         Check In
                                       </button>
@@ -584,14 +582,14 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                     {r.status === 'checked_in' && (
                                       <button
                                         onClick={() => handleCheckOut(r.id)}
-                                        className="text-orange-600 hover:text-orange-700 text-xs sm:text-sm"
+                                        className="px-2 py-1 bg-orange-100 text-orange-700 hover:bg-orange-200 rounded text-xs sm:text-sm font-medium transition-colors"
                                       >
                                         Check Out
                                       </button>
                                     )}
                                     <button
                                       onClick={() => generateInvoice(r)}
-                                      className="text-purple-600 hover:text-purple-700 text-xs sm:text-sm"
+                                      className="px-2 py-1 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded text-xs sm:text-sm font-medium transition-colors"
                                     >
                                       Invoice
                                     </button>
