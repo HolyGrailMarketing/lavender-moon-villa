@@ -30,6 +30,8 @@ export async function GET() {
         r.additional_items,
         r.amount_paid,
         r.created_at,
+        r.cancellation_reason,
+        r.cancellation_notes,
         rm.room_number,
         rm.name as room_name,
         g.first_name || ' ' || g.last_name as guest_name,

@@ -40,6 +40,10 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [editingPriceRoomId, setEditingPriceRoomId] = useState<number | null>(null)
   const [priceEditValue, setPriceEditValue] = useState<string>('')
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [cancellingReservation, setCancellingReservation] = useState<Reservation | null>(null)
+  const [cancellationReason, setCancellationReason] = useState('')
+  const [cancellationNotes, setCancellationNotes] = useState('')
 
   useEffect(() => {
     fetchData()
@@ -630,6 +634,14 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                         Check Out
                                       </button>
                                     )}
+                                    {r.status !== 'cancelled' && r.status !== 'checked_out' && (
+                                      <button
+                                        onClick={() => openCancelModal(r)}
+                                        className="px-2 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded text-xs sm:text-sm font-medium transition-colors"
+                                      >
+                                        Cancel
+                                      </button>
+                                    )}
                                     <button
                                       onClick={() => generateInvoice(r)}
                                       className="px-2 py-1 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded text-xs sm:text-sm font-medium transition-colors"
@@ -906,6 +918,91 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                 onSuccess={handleReservationSuccess}
                 onCancel={closeModal}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancellation Modal */}
+      {showCancelModal && cancellingReservation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full">
+            <div className="border-b px-6 py-4 flex justify-between items-center">
+              <h2 className="text-2xl font-serif text-lavender-deep">Cancel Reservation</h2>
+              <button
+                onClick={closeCancelModal}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="font-medium text-red-800 mb-1">Reservation Details</p>
+                <p className="text-sm text-red-700">
+                  <strong>Guest:</strong> {cancellingReservation.guest_name}
+                </p>
+                <p className="text-sm text-red-700">
+                  <strong>Room:</strong> {cancellingReservation.room_name}
+                </p>
+                <p className="text-sm text-red-700">
+                  <strong>Check-in:</strong> {formatDateForDisplay(cancellingReservation.check_in)}
+                </p>
+                <p className="text-sm text-red-700">
+                  <strong>Check-out:</strong> {formatDateForDisplay(cancellingReservation.check_out)}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Cancellation Reason <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={cancellationReason}
+                  onChange={(e) => setCancellationReason(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                  required
+                >
+                  <option value="">Select a reason</option>
+                  <option value="Refund Applied">Refund Applied</option>
+                  <option value="Non-Refundable">Non-Refundable</option>
+                  <option value="Partial Refund Issued">Partial Refund Issued</option>
+                  <option value="No Payment Received">No Payment Received</option>
+                  <option value="Guest No-Show">Guest No-Show</option>
+                  <option value="Guest Request">Guest Request</option>
+                  <option value="Hotel Cancellation">Hotel Cancellation</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Additional Notes (Optional)
+                </label>
+                <textarea
+                  value={cancellationNotes}
+                  onChange={(e) => setCancellationNotes(e.target.value)}
+                  rows={3}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                  placeholder="Add any additional notes about the cancellation..."
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleCancelReservation}
+                  disabled={!cancellationReason}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Confirm Cancellation
+                </button>
+                <button
+                  onClick={closeCancelModal}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>

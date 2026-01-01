@@ -22,6 +22,8 @@ export async function GET(
         r.service_charge,
         r.additional_items,
         r.amount_paid,
+        r.cancellation_reason,
+        r.cancellation_notes,
         rm.room_number,
         rm.name as room_name,
         g.id as guest_id,
@@ -214,12 +216,17 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Get cancellation details from request body
+    const body = await request.json().catch(() => ({}))
+    const { cancellation_reason, cancellation_notes } = body
+
     // Get reservation data before cancelling for email
     const reservationData = await sql`
       SELECT 
         r.*,
         rm.name as room_name,
         rm.room_number,
+        rm.id as room_id,
         g.first_name || ' ' || g.last_name as guest_name,
         g.email as guest_email
       FROM reservations r
@@ -228,9 +235,20 @@ export async function DELETE(
       WHERE r.id = ${params.id}
     `
 
+    if (reservationData.length === 0) {
+      return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
+    }
+
+    const reservation = reservationData[0]
+
+    // Update reservation status and cancellation details
     const result = await sql`
       UPDATE reservations 
-      SET status = 'cancelled'
+      SET 
+        status = 'cancelled',
+        cancellation_reason = ${cancellation_reason || null},
+        cancellation_notes = ${cancellation_notes || null},
+        updated_at = NOW()
       WHERE id = ${params.id}
       RETURNING *
     `
@@ -239,30 +257,37 @@ export async function DELETE(
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
     }
 
-    // Send cancellation email
-    if (reservationData.length > 0) {
-      try {
-        const res = reservationData[0]
-        await sendCancellationEmail({
-          guestName: res.guest_name as string,
-          guestEmail: res.guest_email as string,
-          reservationId: res.id as number,
-          roomName: res.room_name as string,
-          roomNumber: res.room_number as string,
-          checkIn: res.check_in as string,
-          checkOut: res.check_out as string,
-          numGuests: res.num_guests as number,
-          totalPrice: parseFloat(res.total_price as string),
-          specialRequests: res.special_requests as string | undefined,
-          status: 'cancelled',
-        })
-      } catch (emailError) {
-        // Don't fail the cancellation if email fails
-        console.error('Error sending cancellation email:', emailError)
-      }
+    // Release the room (set to available if it was occupied/cleaning, or keep current status if available/maintenance)
+    // Only update room status if reservation was confirmed or checked_in
+    if (reservation.status === 'confirmed' || reservation.status === 'checked_in') {
+      await sql`
+        UPDATE rooms 
+        SET status = 'available'
+        WHERE id = ${reservation.room_id}
+      `
     }
 
-    return NextResponse.json({ success: true })
+    // Send cancellation email
+    try {
+      await sendCancellationEmail({
+        guestName: reservation.guest_name as string,
+        guestEmail: reservation.guest_email as string,
+        reservationId: reservation.id as number,
+        roomName: reservation.room_name as string,
+        roomNumber: reservation.room_number as string,
+        checkIn: reservation.check_in as string,
+        checkOut: reservation.check_out as string,
+        numGuests: reservation.num_guests as number,
+        totalPrice: parseFloat(reservation.total_price as string),
+        specialRequests: reservation.special_requests as string | undefined,
+        status: 'cancelled',
+      })
+    } catch (emailError) {
+      // Don't fail the cancellation if email fails
+      console.error('Error sending cancellation email:', emailError)
+    }
+
+    return NextResponse.json({ success: true, reservation: result[0] })
   } catch (error) {
     console.error('Error cancelling reservation:', error)
     return NextResponse.json(
