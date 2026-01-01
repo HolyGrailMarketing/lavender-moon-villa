@@ -272,6 +272,51 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
     }
   }
 
+  function openCancelModal(reservation: Reservation) {
+    setCancellingReservation(reservation)
+    setCancellationReason('')
+    setCancellationNotes('')
+    setShowCancelModal(true)
+  }
+
+  function closeCancelModal() {
+    setShowCancelModal(false)
+    setCancellingReservation(null)
+    setCancellationReason('')
+    setCancellationNotes('')
+  }
+
+  async function handleCancelReservation() {
+    if (!cancellingReservation) return
+    if (!cancellationReason) {
+      alert('Please select a cancellation reason')
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/reservations/${cancellingReservation.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cancellation_reason: cancellationReason,
+          cancellation_notes: cancellationNotes || null,
+        }),
+      })
+
+      if (res.ok) {
+        await fetchData()
+        closeCancelModal()
+        alert('Reservation cancelled successfully')
+      } else {
+        const error = await res.json()
+        alert(error.error || 'Failed to cancel reservation')
+      }
+    } catch (error) {
+      console.error('Error cancelling reservation:', error)
+      alert('Error cancelling reservation')
+    }
+  }
+
   function generateInvoice(reservation: Reservation) {
     const invoiceWindow = window.open('', '_blank')
     if (!invoiceWindow) return
