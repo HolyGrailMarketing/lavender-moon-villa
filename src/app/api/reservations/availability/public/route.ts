@@ -35,10 +35,16 @@ export async function GET(request: Request) {
     `
 
     return NextResponse.json(availableRooms)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error checking availability:', error)
+    const errorMessage = error?.message || 'Unknown error'
+    const errorStack = error?.stack || ''
+    console.error('Error details:', { errorMessage, errorStack })
     return NextResponse.json(
-      { error: 'Failed to check availability' },
+      { 
+        error: 'Failed to check availability',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     )
   }
