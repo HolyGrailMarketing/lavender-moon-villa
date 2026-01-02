@@ -36,6 +36,7 @@ export default function BookPage() {
   })
   const [reservationId, setReservationId] = useState<number | null>(null)
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<'wipay' | 'paypal'>('wipay')
 
   useEffect(() => {
     // Set minimum date to today
@@ -142,9 +143,58 @@ export default function BookPage() {
     }
   }
 
+  async function handlePayPalPayment() {
+    if (!reservationId || !selectedRoom) return
+
+    setProcessingPayment(true)
+
+    try {
+      const nights = Math.ceil(
+        (new Date(formData.check_out).getTime() - new Date(formData.check_in).getTime()) / 
+        (1000 * 60 * 60 * 24)
+      )
+      const totalPrice = Number(selectedRoom.price_per_night) * nights
+
+      // Initiate PayPal payment
+      const paymentRes = await fetch('/api/payments/paypal/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reservation_id: reservationId,
+          amount: totalPrice,
+          customer_name: `${formData.guest.first_name} ${formData.guest.last_name}`,
+          customer_email: formData.guest.email,
+        }),
+      })
+
+      if (!paymentRes.ok) {
+        const error = await paymentRes.json()
+        throw new Error(error.error || 'Failed to initiate payment')
+      }
+
+      const paymentData = await paymentRes.json()
+
+      // Redirect to PayPal approval URL
+      if (paymentData.approval_url) {
+        window.location.href = paymentData.approval_url
+      } else {
+        throw new Error('PayPal approval URL not received')
+      }
+    } catch (error: any) {
+      alert(error.message || 'Error initiating payment. Please try again.')
+      setProcessingPayment(false)
+    }
+  }
+
   async function handlePayment() {
     if (!reservationId || !selectedRoom) return
 
+    // Route to appropriate payment handler based on selected method
+    if (paymentMethod === 'paypal') {
+      return handlePayPalPayment()
+    }
+
+    // WiPay payment (existing code)
     setProcessingPayment(true)
 
     try {
@@ -552,6 +602,42 @@ export default function BookPage() {
               </div>
             </div>
 
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Select Payment Method
+              </label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('wipay')}
+                  className={`p-4 border-2 rounded-lg transition-all ${
+                    paymentMethod === 'wipay'
+                      ? 'border-lavender-deep bg-lavender-pale'
+                      : 'border-gray-200 hover:border-lavender-medium'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="font-medium text-gray-900 mb-1">WiPay</div>
+                    <div className="text-xs text-gray-500">Credit/Debit Card</div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('paypal')}
+                  className={`p-4 border-2 rounded-lg transition-all ${
+                    paymentMethod === 'paypal'
+                      ? 'border-lavender-deep bg-lavender-pale'
+                      : 'border-gray-200 hover:border-lavender-medium'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="font-medium text-gray-900 mb-1">PayPal</div>
+                    <div className="text-xs text-gray-500">PayPal Account</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <div className="flex items-start gap-3">
                 <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -559,7 +645,11 @@ export default function BookPage() {
                 </svg>
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">Secure Payment</p>
-                  <p>You will be redirected to WiPay's secure payment page to complete your booking. Your reservation will be confirmed once payment is successful.</p>
+                  <p>
+                    {paymentMethod === 'paypal'
+                      ? "You will be redirected to PayPal's secure payment page to complete your booking. Your reservation will be confirmed once payment is successful."
+                      : "You will be redirected to WiPay's secure payment page to complete your booking. Your reservation will be confirmed once payment is successful."}
+                  </p>
                 </div>
               </div>
             </div>

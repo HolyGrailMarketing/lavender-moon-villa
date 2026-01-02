@@ -14,6 +14,13 @@ const nextConfig = {
     // Enable image optimization
     unoptimized: false,
   },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Don't bundle PayPal SDK - use it as external dependency
+      config.externals = [...(config.externals || []), '@paypal/checkout-server-sdk']
+    }
+    return config
+  },
 }
 
 module.exports = nextConfig
