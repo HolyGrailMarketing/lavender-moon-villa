@@ -878,7 +878,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                   Check In
                                 </button>
                                 <button
-                                  onClick={() => generateInvoice(r)}
+                                  onClick={() => viewInvoice(r)}
                                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
                                 >
                                   Invoice
@@ -913,7 +913,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                   Check Out
                                 </button>
                                 <button
-                                  onClick={() => generateInvoice(r)}
+                                  onClick={() => viewInvoice(r)}
                                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
                                 >
                                   Invoice
