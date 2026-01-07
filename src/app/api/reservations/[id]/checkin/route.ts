@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
+import { getSession } from '@/lib/auth'
 import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
@@ -103,10 +104,21 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { token } = await request.json()
+    // Check if staff is logged in (dashboard check-in)
+    const session = await getSession()
+    
+    // Parse body - may be empty for staff check-in
+    let token: string | null = null
+    try {
+      const body = await request.json()
+      token = body.token || null
+    } catch {
+      // Empty body is okay for staff check-in
+    }
 
-    if (!token) {
-      return NextResponse.json({ error: 'Token required' }, { status: 401 })
+    // Must have either a session (staff) or a token (guest self-check-in)
+    if (!session && !token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const reservation = await sql`
@@ -126,35 +138,43 @@ export async function POST(
 
     const res = reservation[0]
 
-    if (!verifyToken(token, params.id, res.guest_email)) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
-    }
+    // If guest self-check-in (token provided), verify token and time window
+    if (token) {
+      if (!verifyToken(token, params.id, res.guest_email)) {
+        return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
+      }
 
-    // Check if already checked in
-    if (res.status === 'checked_in') {
-      return NextResponse.json({ error: 'Already checked in' }, { status: 400 })
-    }
+      // Check if already checked in
+      if (res.status === 'checked_in') {
+        return NextResponse.json({ error: 'Already checked in' }, { status: 400 })
+      }
 
-    // Verify it's check-in date and time window
-    const checkInDate = new Date(res.check_in)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    checkInDate.setHours(0, 0, 0, 0)
-    const isCheckInDate = checkInDate.getTime() === today.getTime()
-    const currentHour = new Date().getHours()
-    const canCheckIn = isCheckInDate && currentHour >= 15 && currentHour < 21
+      // Verify it's check-in date and time window for guest self-check-in
+      const checkInDate = new Date(res.check_in)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      checkInDate.setHours(0, 0, 0, 0)
+      const isCheckInDate = checkInDate.getTime() === today.getTime()
+      const currentHour = new Date().getHours()
+      const canCheckIn = isCheckInDate && currentHour >= 15 && currentHour < 21
 
-    if (!canCheckIn) {
-      if (!isCheckInDate) {
+      if (!canCheckIn) {
+        if (!isCheckInDate) {
+          return NextResponse.json(
+            { error: 'Check-in is only available on your check-in date' },
+            { status: 400 }
+          )
+        }
         return NextResponse.json(
-          { error: 'Check-in is only available on your check-in date' },
+          { error: 'Check-in is only available between 3:00 PM and 9:00 PM on your check-in date' },
           { status: 400 }
         )
       }
-      return NextResponse.json(
-        { error: 'Check-in is only available between 3:00 PM and 9:00 PM on your check-in date' },
-        { status: 400 }
-      )
+    } else {
+      // Staff check-in - just check if already checked in
+      if (res.status === 'checked_in') {
+        return NextResponse.json({ error: 'Already checked in' }, { status: 400 })
+      }
     }
 
     // Update reservation status

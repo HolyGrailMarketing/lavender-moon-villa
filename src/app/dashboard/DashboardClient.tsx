@@ -44,6 +44,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
   const [cancellingReservation, setCancellingReservation] = useState<Reservation | null>(null)
   const [cancellationReason, setCancellationReason] = useState('')
   const [cancellationNotes, setCancellationNotes] = useState('')
+  const [openActionMenu, setOpenActionMenu] = useState<number | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -97,7 +98,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
     return ''
   }
 
-  // Helper function to format dates for display without timezone shifts
+  // Helper function to format DATE fields (check_in, check_out) without timezone shifts
   const formatDateForDisplay = (dateValue: string | Date | null | undefined): string => {
     if (!dateValue) return '-'
     
@@ -110,7 +111,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
       dateStr = dateValue.toISOString()
     }
     
-    // Extract date part if it includes time
+    // Extract date part if it includes time (for DATE fields only)
     if (dateStr.includes('T')) {
       dateStr = dateStr.split('T')[0]
     }
@@ -130,6 +131,20 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
     // Fallback: try regular Date parsing (may have timezone issues)
     try {
       return new Date(dateValue).toLocaleDateString()
+    } catch (e) {
+      return '-'
+    }
+  }
+
+  // Helper function to format TIMESTAMP fields (created_at) - converts to local time first
+  const formatTimestampForDisplay = (dateValue: string | Date | null | undefined): string => {
+    if (!dateValue) return '-'
+    
+    try {
+      // Parse as full timestamp and convert to local date
+      const date = new Date(dateValue)
+      if (isNaN(date.getTime())) return '-'
+      return date.toLocaleDateString()
     } catch (e) {
       return '-'
     }
@@ -568,7 +583,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                 </td>
                                 <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{r.room_number}</td>
                                 <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">
-                                  {formatDateForDisplay(r.created_at)}
+                                  {formatTimestampForDisplay(r.created_at)}
                                 </td>
                                 <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{formatDateForDisplay(r.check_in)}</td>
                                 <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{formatDateForDisplay(r.check_out)}</td>
@@ -590,37 +605,84 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                   </span>
                                 </td>
                                 <td className="px-4 md:px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                                  <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                                    {(r.status === 'deposit_paid' || r.status === 'paid_in_full') && (
-                                      <button
-                                        onClick={() => handleCheckIn(r.id)}
-                                        className="px-2 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded text-xs sm:text-sm font-medium transition-colors"
-                                      >
-                                        Check In
-                                      </button>
-                                    )}
-                                    {r.status === 'checked_in' && (
-                                      <button
-                                        onClick={() => handleCheckOut(r.id)}
-                                        className="px-2 py-1 bg-orange-100 text-orange-700 hover:bg-orange-200 rounded text-xs sm:text-sm font-medium transition-colors"
-                                      >
-                                        Check Out
-                                      </button>
-                                    )}
-                                    {r.status !== 'cancelled' && r.status !== 'checked_out' && (
-                                      <button
-                                        onClick={() => openCancelModal(r)}
-                                        className="px-2 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded text-xs sm:text-sm font-medium transition-colors"
-                                      >
-                                        Cancel
-                                      </button>
-                                    )}
+                                  <div className="relative">
                                     <button
-                                      onClick={() => viewInvoice(r)}
-                                      className="px-2 py-1 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded text-xs sm:text-sm font-medium transition-colors"
+                                      onClick={() => setOpenActionMenu(openActionMenu === r.id ? null : r.id)}
+                                      className="px-3 py-1.5 bg-lavender-pale text-lavender-deep hover:bg-lavender-light rounded-lg text-sm font-medium transition-colors flex items-center gap-1"
                                     >
-                                      Invoice
+                                      Actions
+                                      <svg className={`w-4 h-4 transition-transform ${openActionMenu === r.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                      </svg>
                                     </button>
+                                    
+                                    {openActionMenu === r.id && (
+                                      <>
+                                        {/* Backdrop to close menu when clicking outside */}
+                                        <div 
+                                          className="fixed inset-0 z-10" 
+                                          onClick={() => setOpenActionMenu(null)}
+                                        />
+                                        
+                                        {/* Dropdown menu */}
+                                        <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                                          {(r.status === 'deposit_paid' || r.status === 'paid_in_full') && (
+                                            <button
+                                              onClick={() => { handleCheckIn(r.id); setOpenActionMenu(null); }}
+                                              className="w-full px-4 py-2 text-left text-sm text-green-700 hover:bg-green-50 flex items-center gap-2"
+                                            >
+                                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                              </svg>
+                                              Check In
+                                            </button>
+                                          )}
+                                          {r.status === 'checked_in' && (
+                                            <button
+                                              onClick={() => { handleCheckOut(r.id); setOpenActionMenu(null); }}
+                                              className="w-full px-4 py-2 text-left text-sm text-orange-700 hover:bg-orange-50 flex items-center gap-2"
+                                            >
+                                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                              </svg>
+                                              Check Out
+                                            </button>
+                                          )}
+                                          <button
+                                            onClick={() => { viewInvoice(r); setOpenActionMenu(null); }}
+                                            className="w-full px-4 py-2 text-left text-sm text-purple-700 hover:bg-purple-50 flex items-center gap-2"
+                                          >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            View Invoice
+                                          </button>
+                                          <button
+                                            onClick={() => { window.open(`/check-in-form/${r.id}`, '_blank'); setOpenActionMenu(null); }}
+                                            className="w-full px-4 py-2 text-left text-sm text-blue-700 hover:bg-blue-50 flex items-center gap-2"
+                                          >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                            </svg>
+                                            Print Form
+                                          </button>
+                                          {r.status !== 'cancelled' && r.status !== 'checked_out' && (
+                                            <>
+                                              <div className="border-t border-gray-100 my-1"></div>
+                                              <button
+                                                onClick={() => { openCancelModal(r); setOpenActionMenu(null); }}
+                                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                                              >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                Cancel Reservation
+                                              </button>
+                                            </>
+                                          )}
+                                        </div>
+                                      </>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
