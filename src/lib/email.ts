@@ -49,7 +49,7 @@ export class EmailError extends Error {
  * Send email using Resend API (recommended for Vercel)
  * Returns an object with success status and error details
  */
-async function sendEmailWithResend(data: EmailData): Promise<{ success: boolean; error?: EmailError; emailId?: string }> {
+export async function sendEmailWithResend(data: EmailData): Promise<{ success: boolean; error?: EmailError; emailId?: string }> {
   const RESEND_API_KEY = process.env.RESEND_API_KEY
   const FROM_EMAIL = process.env.EMAIL_FROM || 'Lavender Moon Villas <noreply@lavendermoon.net>'
   const REPLY_TO = process.env.EMAIL_REPLY_TO || 'reservations@lavendermoon.net'

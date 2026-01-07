@@ -66,7 +66,7 @@ export async function POST(request: Request) {
 
     // Send verification email
     const { sendEmailWithResend } = await import('@/lib/email')
-    await sendEmailWithResend({
+    const emailResult = await sendEmailWithResend({
       to: email,
       subject: 'Update Your Information - Lavender Moon Villas',
       html: `
@@ -91,6 +91,11 @@ export async function POST(request: Request) {
         </div>
       `,
     })
+
+    if (!emailResult.success) {
+      console.error('[Data Correction] Failed to send verification email:', emailResult.error?.message)
+      // Still return success to user (don't reveal if email exists)
+    }
 
     return NextResponse.json({
       message: 'If an account exists with this email, a verification link will be sent.'
