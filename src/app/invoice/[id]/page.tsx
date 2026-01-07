@@ -10,12 +10,13 @@ interface InvoiceData {
   check_in: string
   check_out: string
   num_guests: number
-  total_price: number
-  amount_paid: number
-  service_charge: number
-  additional_items: Array<{ description: string; amount: number }>
+  total_price: number | string
+  amount_paid: number | string | null
+  service_charge: number | string | null
+  additional_items: Array<{ description: string; amount: number; quantity?: number }> | null
   room_name: string
   room_number: string
+  price_per_night: number | string | null
   guest_name: string
   guest_email: string
   source: string
@@ -78,11 +79,14 @@ export default function InvoicePage() {
     (1000 * 60 * 60 * 24)
   )
 
-  const serviceCharge = invoice.service_charge || 0
+  const serviceCharge = Number(invoice.service_charge) || 0
   const additionalItems = invoice.additional_items || []
-  const subtotal = invoice.total_price - serviceCharge - additionalItems.reduce((sum, item) => sum + item.amount, 0)
-  const amountPaid = invoice.amount_paid || 0
-  const outstandingBalance = invoice.total_price - amountPaid
+  const pricePerNight = Number(invoice.price_per_night) || 0
+  const roomSubtotal = pricePerNight * nights
+  // Subtotal is the room accommodation before service charge and additional items
+  const subtotal = roomSubtotal
+  const amountPaid = Number(invoice.amount_paid) || 0
+  const outstandingBalance = Number(invoice.total_price) - amountPaid
 
   const handlePrint = () => {
     window.print()
@@ -128,9 +132,9 @@ export default function InvoicePage() {
                 <tr>
                   <td className="py-2 pr-4 font-medium text-gray-600">Reservation ID:</td>
                   <td className="py-2">
-                    <a href={`${baseUrl}/reservations/${invoice.id}`} className="text-lavender-deep hover:underline font-semibold">
+                    <span className="text-lavender-deep font-semibold text-lg">
                       {invoice.reservation_id || `#${invoice.id}`}
-                    </a>
+                    </span>
                   </td>
                 </tr>
                 <tr>
@@ -180,40 +184,93 @@ export default function InvoicePage() {
         {/* Payment Summary */}
         <div className="mb-6">
           <h3 className="font-semibold text-gray-700 mb-4 border-b-2 border-lavender-deep pb-2">Payment Summary</h3>
-          <table className="w-full">
-            <tbody>
-              <tr>
-                <td className="py-2 text-right pr-4">Subtotal:</td>
-                <td className="py-2 text-right font-semibold w-32">${subtotal.toFixed(2)}</td>
-              </tr>
-              {serviceCharge > 0 && (
+          
+          {/* Line Items Table */}
+          <div className="mb-4 overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-lavender-pale">
+                  <th className="border border-gray-300 px-4 py-2 text-left font-semibold text-gray-700">Description</th>
+                  <th className="border border-gray-300 px-4 py-2 text-center font-semibold text-gray-700">Quantity</th>
+                  <th className="border border-gray-300 px-4 py-2 text-right font-semibold text-gray-700">Unit Cost</th>
+                  <th className="border border-gray-300 px-4 py-2 text-right font-semibold text-gray-700">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Room Accommodation */}
                 <tr>
-                  <td className="py-2 text-right pr-4">Service Charge (15%):</td>
-                  <td className="py-2 text-right w-32">${serviceCharge.toFixed(2)}</td>
+                  <td className="border border-gray-300 px-4 py-2">Room Accommodation ({invoice.room_number} - {invoice.room_name})</td>
+                  <td className="border border-gray-300 px-4 py-2 text-center">{nights} {nights === 1 ? 'night' : 'nights'}</td>
+                  <td className="border border-gray-300 px-4 py-2 text-right">${pricePerNight.toFixed(2)}</td>
+                  <td className="border border-gray-300 px-4 py-2 text-right font-semibold">${roomSubtotal.toFixed(2)}</td>
                 </tr>
-              )}
-              {additionalItems.map((item, index) => (
-                <tr key={index}>
-                  <td className="py-2 text-right pr-4">{item.description}:</td>
-                  <td className="py-2 text-right w-32">${item.amount.toFixed(2)}</td>
+                
+                {/* Service Charge */}
+                {serviceCharge > 0 && (
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2">Service Charge (15%)</td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">1</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right">${serviceCharge.toFixed(2)}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right font-semibold">${serviceCharge.toFixed(2)}</td>
+                  </tr>
+                )}
+                
+                {/* Additional Items */}
+                {additionalItems.map((item, index) => {
+                  const quantity = item.quantity || 1
+                  const unitCost = item.amount / quantity
+                  return (
+                    <tr key={index}>
+                      <td className="border border-gray-300 px-4 py-2">{item.description}</td>
+                      <td className="border border-gray-300 px-4 py-2 text-center">{quantity}</td>
+                      <td className="border border-gray-300 px-4 py-2 text-right">${unitCost.toFixed(2)}</td>
+                      <td className="border border-gray-300 px-4 py-2 text-right font-semibold">${item.amount.toFixed(2)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Totals */}
+          <div className="ml-auto" style={{ maxWidth: '400px' }}>
+            <table className="w-full">
+              <tbody>
+                <tr>
+                  <td className="py-2 text-right pr-4 font-semibold">Subtotal:</td>
+                  <td className="py-2 text-right font-semibold w-32">${subtotal.toFixed(2)}</td>
                 </tr>
-              ))}
-              <tr className="border-t-2 border-lavender-deep">
-                <td className="py-3 text-right pr-4 font-bold text-lg">Total Amount:</td>
-                <td className="py-3 text-right font-bold text-lg text-lavender-deep w-32">${invoice.total_price.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td className="py-2 text-right pr-4 text-gray-600">Amount Paid:</td>
-                <td className="py-2 text-right text-gray-600 w-32">${amountPaid.toFixed(2)}</td>
-              </tr>
-              <tr className="border-t border-gray-300">
-                <td className="py-3 text-right pr-4 font-bold">Outstanding Balance:</td>
-                <td className={`py-3 text-right font-bold w-32 ${outstandingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  ${outstandingBalance.toFixed(2)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                {serviceCharge > 0 && (
+                  <tr>
+                    <td className="py-2 text-right pr-4">Service Charge:</td>
+                    <td className="py-2 text-right w-32">${serviceCharge.toFixed(2)}</td>
+                  </tr>
+                )}
+                {additionalItems.length > 0 && (
+                  <tr>
+                    <td className="py-2 text-right pr-4">Additional Items:</td>
+                    <td className="py-2 text-right w-32">${additionalItems.reduce((sum, item) => sum + item.amount, 0).toFixed(2)}</td>
+                  </tr>
+                )}
+                <tr className="border-t-2 border-lavender-deep">
+                  <td className="py-3 text-right pr-4 font-bold text-lg">Total Amount:</td>
+                  <td className="py-3 text-right font-bold text-lg text-lavender-deep w-32">${Number(invoice.total_price).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td className="py-2 text-right pr-4 text-gray-600">Amount Paid:</td>
+                  <td className="py-2 text-right text-gray-600 w-32">${amountPaid.toFixed(2)}</td>
+                </tr>
+                <tr className="border-t-2 border-gray-400">
+                  <td className="py-3 text-right pr-4 font-bold text-lg">Outstanding Balance:</td>
+                  <td className={`py-3 text-right font-bold text-lg w-32 ${outstandingBalance > 0 ? 'text-red-600' : outstandingBalance < 0 ? 'text-blue-600' : 'text-green-600'}`}>
+                    ${Math.abs(outstandingBalance).toFixed(2)}
+                    {outstandingBalance < 0 && <span className="text-sm ml-1">(credit)</span>}
+                    {outstandingBalance === 0 && <span className="text-sm ml-1">(paid in full)</span>}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Disclaimers */}
@@ -293,6 +350,8 @@ export default function InvoicePage() {
     </div>
   )
 }
+
+
 
 
 

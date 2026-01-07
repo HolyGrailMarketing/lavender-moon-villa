@@ -35,8 +35,9 @@ export default function BookPage() {
     special_requests: '',
   })
   const [reservationId, setReservationId] = useState<number | null>(null)
+  const [customReservationId, setCustomReservationId] = useState<string | null>(null)
   const [bookingConfirmed, setBookingConfirmed] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState<'wipay' | 'paypal'>('wipay')
+  const [paymentMethod, setPaymentMethod] = useState<'dimepay' | 'paypal'>('dimepay')
 
   useEffect(() => {
     // Set minimum date to today
@@ -114,12 +115,15 @@ export default function BookPage() {
       const totalPrice = Number(selectedRoom.price_per_night) * nights
 
       // Create reservation with 'pending' status (will be confirmed after payment)
+      // Store the guest name entered at booking time (even if guest record has different name)
       const reservationRes = await fetch('/api/reservations/public', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           room_id: parseInt(formData.room_id),
           guest_id: guest.id,
+          guest_first_name: formData.guest.first_name,  // Store name entered at booking
+          guest_last_name: formData.guest.last_name,     // Store name entered at booking
           check_in: formData.check_in,
           check_out: formData.check_out,
           num_guests: formData.num_guests,
@@ -135,6 +139,7 @@ export default function BookPage() {
 
       const reservation = await reservationRes.json()
       setReservationId(reservation.id)
+      setCustomReservationId(reservation.reservation_id || null) // Store custom reservation ID
       setStep('payment') // Move to payment step
     } catch (error: any) {
       alert(error.message || 'Error creating reservation. Please try again.')
@@ -194,53 +199,37 @@ export default function BookPage() {
       return handlePayPalPayment()
     }
 
-    // WiPay payment (existing code)
+    // DimePay payment - using Web SDK
     setProcessingPayment(true)
 
     try {
-      const nights = Math.ceil(
-        (new Date(formData.check_out).getTime() - new Date(formData.check_in).getTime()) / 
-        (1000 * 60 * 60 * 24)
-      )
-      const totalPrice = Number(selectedRoom.price_per_night) * nights
-
-      // Initiate WiPay payment
-      const paymentRes = await fetch('/api/payments/wipay/initiate', {
+      // Generate JWT token for DimePay Web SDK
+      const tokenRes = await fetch('/api/payments/dimepay/generate-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           reservation_id: reservationId,
-          amount: totalPrice,
-          customer_name: `${formData.guest.first_name} ${formData.guest.last_name}`,
-          customer_email: formData.guest.email,
-          customer_phone: formData.guest.phone,
-          return_url: `${window.location.origin}/api/payments/wipay/callback`,
         }),
       })
 
-      if (!paymentRes.ok) {
-        const error = await paymentRes.json()
-        throw new Error(error.error || 'Failed to initiate payment')
+      if (!tokenRes.ok) {
+        const error = await tokenRes.json()
+        throw new Error(error.error || 'Failed to generate payment token')
       }
 
-      const paymentData = await paymentRes.json()
+      const { token, orderId } = await tokenRes.json()
 
-      // Create form to submit to WiPay
-      const form = document.createElement('form')
-      form.method = 'POST'
-      form.action = paymentData.payment_url
-
-      // Add all payment parameters as hidden fields
-      Object.entries(paymentData.payment_params).forEach(([key, value]) => {
-        const input = document.createElement('input')
-        input.type = 'hidden'
-        input.name = key
-        input.value = String(value)
-        form.appendChild(input)
+      // Redirect to DimePay payment page with the token
+      // Pass both numeric ID and custom ID to payment page
+      const params = new URLSearchParams({
+        token: token,
+        orderId: orderId,
+        reservationId: reservationId.toString(),
       })
-
-      document.body.appendChild(form)
-      form.submit()
+      if (customReservationId) {
+        params.append('customReservationId', customReservationId)
+      }
+      window.location.href = `/book/payment/dimepay?${params.toString()}`
     } catch (error: any) {
       alert(error.message || 'Error initiating payment. Please try again.')
       setProcessingPayment(false)
@@ -609,15 +598,15 @@ export default function BookPage() {
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('wipay')}
+                  onClick={() => setPaymentMethod('dimepay')}
                   className={`p-4 border-2 rounded-lg transition-all ${
-                    paymentMethod === 'wipay'
+                    paymentMethod === 'dimepay'
                       ? 'border-lavender-deep bg-lavender-pale'
                       : 'border-gray-200 hover:border-lavender-medium'
                   }`}
                 >
                   <div className="text-center">
-                    <div className="font-medium text-gray-900 mb-1">WiPay</div>
+                    <div className="font-medium text-gray-900 mb-1">DimePay</div>
                     <div className="text-xs text-gray-500">Credit/Debit Card</div>
                   </div>
                 </button>
@@ -648,7 +637,7 @@ export default function BookPage() {
                   <p>
                     {paymentMethod === 'paypal'
                       ? "You will be redirected to PayPal's secure payment page to complete your booking. Your reservation will be confirmed once payment is successful."
-                      : "You will be redirected to WiPay's secure payment page to complete your booking. Your reservation will be confirmed once payment is successful."}
+                      : "You will be redirected to DimePay's secure payment page to complete your booking. Your reservation will be confirmed once payment is successful."}
                   </p>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
+import { generateReservationId } from '@/lib/reservation-id'
 
 export const dynamic = 'force-dynamic'
 
@@ -7,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export async function POST(request: Request) {
   try {
     const data = await request.json()
-    const { room_id, guest_id, check_in, check_out, num_guests, total_price, special_requests } = data
+    const { room_id, guest_id, check_in, check_out, num_guests, total_price, special_requests, guest_first_name, guest_last_name } = data
 
     // Verify room exists and is available
     const room = await sql`
@@ -40,14 +41,39 @@ export async function POST(request: Request) {
       )
     }
 
+    // Generate custom reservation ID: LMV22927-YYMMDD-NN
+    const reservationId = await generateReservationId(check_in)
+
+    // Get guest name from request (name entered at booking) or fallback to guest record
+    let finalGuestFirstName = guest_first_name
+    let finalGuestLastName = guest_last_name
+    
+    // If name not provided, get it from guest record
+    if (!finalGuestFirstName || !finalGuestLastName) {
+      const guestRecord = await sql`
+        SELECT first_name, last_name FROM guests WHERE id = ${guest_id}
+      `
+      if (guestRecord.length > 0) {
+        finalGuestFirstName = finalGuestFirstName || guestRecord[0].first_name
+        finalGuestLastName = finalGuestLastName || guestRecord[0].last_name
+      }
+    }
+
     // Create reservation with 'pending' status (will be confirmed after payment in Phase 4.2)
+    // Store guest name entered at booking time to preserve it
     const result = await sql`
-      INSERT INTO reservations (room_id, guest_id, check_in, check_out, num_guests, total_price, special_requests, status)
-      VALUES (${room_id}, ${guest_id}, ${check_in}, ${check_out}, ${num_guests}, ${total_price}, ${special_requests || null}, 'pending')
+      INSERT INTO reservations (room_id, guest_id, check_in, check_out, num_guests, total_price, special_requests, status, reservation_id, guest_first_name, guest_last_name)
+      VALUES (${room_id}, ${guest_id}, ${check_in}, ${check_out}, ${num_guests}, ${total_price}, ${special_requests || null}, 'pending', ${reservationId}, ${finalGuestFirstName}, ${finalGuestLastName})
       RETURNING *
     `
 
-    return NextResponse.json(result[0], { status: 201 })
+    const reservation = result[0]
+
+    // NOTE: Confirmation email will be sent AFTER payment is confirmed
+    // (in the payment verification/webhook routes when status becomes 'paid_in_full' or 'deposit_paid')
+    // We do NOT send email here because the reservation is still 'pending' and payment hasn't been confirmed yet
+
+    return NextResponse.json(reservation, { status: 201 })
   } catch (error: any) {
     console.error('Error creating reservation:', error)
     // Check for unique constraint violations
@@ -63,6 +89,8 @@ export async function POST(request: Request) {
     )
   }
 }
+
+
 
 
 

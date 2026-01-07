@@ -34,7 +34,7 @@ export async function GET() {
         r.cancellation_notes,
         rm.room_number,
         rm.name as room_name,
-        g.first_name || ' ' || g.last_name as guest_name,
+        COALESCE(r.guest_first_name || ' ' || r.guest_last_name, g.first_name || ' ' || g.last_name) as guest_name,
         g.email as guest_email
       FROM reservations r
       JOIN rooms rm ON r.room_id = rm.id
@@ -79,16 +79,24 @@ export async function POST(request: Request) {
     // Generate reservation ID
     const reservationId = await generateReservationId(check_in)
 
+    // Get guest name from guest record to store on reservation
+    const guestRecord = await sql`
+      SELECT first_name, last_name FROM guests WHERE id = ${guest_id}
+    `
+    const guestFirstName = guestRecord.length > 0 ? guestRecord[0].first_name : null
+    const guestLastName = guestRecord.length > 0 ? guestRecord[0].last_name : null
+
     const result = await sql`
       INSERT INTO reservations (
         reservation_id, room_id, guest_id, check_in, check_out, num_guests, total_price, 
         special_requests, source, use_custom_total, additional_guests,
-        service_charge, additional_items, amount_paid
+        service_charge, additional_items, amount_paid, guest_first_name, guest_last_name
       )
       VALUES (
         ${reservationId}, ${room_id}, ${guest_id}, ${check_in}, ${check_out}, ${num_guests}, ${total_price}, 
         ${special_requests}, ${source || 'direct'}, ${use_custom_total || false}, ${additional_guests || null},
-        ${service_charge || 0}, ${JSON.stringify(additional_items || [])}::jsonb, ${amount_paid || 0}
+        ${service_charge || 0}, ${JSON.stringify(additional_items || [])}::jsonb, ${amount_paid || 0},
+        ${guestFirstName}, ${guestLastName}
       )
       RETURNING *
     `

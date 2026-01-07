@@ -72,24 +72,47 @@ export async function GET(request: Request) {
         const transactionId = capture.result.purchase_units?.[0]?.payments?.captures?.[0]?.id || token
         const capturedAmount = capture.result.purchase_units?.[0]?.payments?.captures?.[0]?.amount?.value || '0'
 
-        try {
-          await sql`
-            UPDATE reservations 
-            SET 
-              status = 'confirmed',
-              payment_status = 'paid',
-              payment_transaction_id = ${transactionId},
-              payment_date = NOW()
-            WHERE id = ${reservationId}
-          `
-        } catch (error: any) {
-          // If payment columns don't exist, just update status
-          console.warn('Could not update payment columns, updating status only:', error.message)
-          await sql`
-            UPDATE reservations 
-            SET status = 'confirmed'
-            WHERE id = ${reservationId}
-          `
+        // Get current reservation to check payment amounts
+        const currentReservation = await sql`
+          SELECT total_price, amount_paid FROM reservations WHERE id = ${reservationId}
+        `
+        
+        if (currentReservation.length > 0) {
+          const totalPrice = parseFloat(currentReservation[0].total_price as string)
+          const currentAmountPaid = parseFloat(currentReservation[0].amount_paid as string || '0')
+          const paymentAmount = parseFloat(capturedAmount)
+          const newAmountPaid = currentAmountPaid + paymentAmount
+          
+          // Determine status based on payment amount
+          let newStatus = 'deposit_paid'
+          if (newAmountPaid >= totalPrice) {
+            newStatus = 'paid_in_full'
+          } else if (newAmountPaid > 0) {
+            newStatus = 'deposit_paid'
+          }
+          
+          try {
+            await sql`
+              UPDATE reservations 
+              SET 
+                status = ${newStatus},
+                amount_paid = ${newAmountPaid},
+                payment_status = 'paid',
+                payment_transaction_id = ${transactionId},
+                payment_date = NOW()
+              WHERE id = ${reservationId}
+            `
+          } catch (error: any) {
+            // If payment columns don't exist, just update status and amount_paid
+            console.warn('Could not update payment columns, updating status only:', error.message)
+            await sql`
+              UPDATE reservations 
+              SET 
+                status = ${newStatus},
+                amount_paid = ${newAmountPaid}
+              WHERE id = ${reservationId}
+            `
+          }
         }
 
         // Send confirmation email
@@ -121,7 +144,7 @@ export async function GET(request: Request) {
             const res = reservationData[0]
             const amountPaid = parseFloat(res.amount_paid as string || '0')
             const totalPrice = parseFloat(res.total_price as string)
-            await sendBookingConfirmation({
+            const emailResult = await sendBookingConfirmation({
               guestName: res.guest_name as string,
               guestEmail: res.guest_email as string,
               reservationId: res.id as number,
@@ -139,10 +162,22 @@ export async function GET(request: Request) {
               specialRequests: res.special_requests as string | undefined,
               status: res.status as string,
             })
+            
+            if (emailResult.success) {
+              console.log(`[PayPal] Confirmation email sent for reservation ${res.id}`, {
+                emailId: emailResult.emailId,
+              })
+            } else {
+              console.error('[PayPal] Failed to send confirmation email:', {
+                reservationId: res.id,
+                error: emailResult.error?.message,
+                code: emailResult.error?.code,
+              })
+            }
           }
-        } catch (emailError) {
+        } catch (emailError: any) {
           // Don't fail the payment callback if email fails
-          console.error('Error sending confirmation email:', emailError)
+          console.error('[PayPal] Exception sending confirmation email:', emailError.message)
         }
 
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || request.url.split('/api')[0]

@@ -148,13 +148,13 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
 
   const todayArrivals = reservations.filter(r => {
     const checkInDate = normalizeDate(r.check_in)
-    const matches = checkInDate === today && (r.status === 'confirmed' || r.status === 'pending')
+    const matches = checkInDate === today && (r.status === 'deposit_paid' || r.status === 'paid_in_full' || r.status === 'pending')
     return matches
   })
 
   const todayDepartures = reservations.filter(r => {
     const checkOutDate = normalizeDate(r.check_out)
-    const matches = checkOutDate === today && (r.status === 'checked_in' || r.status === 'confirmed')
+    const matches = checkOutDate === today && (r.status === 'checked_in' || r.status === 'deposit_paid' || r.status === 'paid_in_full')
     return matches
   })
 
@@ -317,87 +317,9 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
     }
   }
 
-  function generateInvoice(reservation: Reservation) {
-    const invoiceWindow = window.open('', '_blank')
-    if (!invoiceWindow) return
-
-    const invoiceHTML = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Invoice - Reservation ${reservation.id}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
-          .header { border-bottom: 2px solid #4a3f6b; padding-bottom: 20px; margin-bottom: 30px; }
-          .header h1 { color: #4a3f6b; margin: 0; }
-          .details { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
-          .section h3 { color: #4a3f6b; border-bottom: 1px solid #e8e0f0; padding-bottom: 10px; }
-          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          th { background: #e8e0f0; padding: 10px; text-align: left; }
-          td { padding: 10px; border-bottom: 1px solid #e8e0f0; }
-          .total { font-size: 1.2em; font-weight: bold; color: #4a3f6b; text-align: right; margin-top: 20px; }
-          .footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #4a3f6b; color: #6b5e7a; font-size: 0.9em; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>Lavender Moon Villas</h1>
-          <p>Breadnut Hill, Ocho Rios, St. Ann Parish, Jamaica</p>
-          <p>Phone: +1 (876) 516-1421</p>
-        </div>
-        
-        <h2>Invoice #${reservation.id}</h2>
-        
-        <div class="details">
-          <div class="section">
-            <h3>Guest Information</h3>
-            <p><strong>${reservation.guest_name}</strong></p>
-            <p>${reservation.guest_email}</p>
-          </div>
-          <div class="section">
-            <h3>Reservation Details</h3>
-            <p><strong>Room:</strong> ${reservation.room_number} - ${reservation.room_name}</p>
-            <p><strong>Check-in:</strong> ${new Date(reservation.check_in).toLocaleDateString()}</p>
-            <p><strong>Check-out:</strong> ${new Date(reservation.check_out).toLocaleDateString()}</p>
-            <p><strong>Guests:</strong> ${reservation.num_guests}</p>
-          </div>
-        </div>
-        
-        <table>
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Nights</th>
-              <th>Rate</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Accommodation</td>
-              <td>${Math.ceil((new Date(reservation.check_out).getTime() - new Date(reservation.check_in).getTime()) / (1000 * 60 * 60 * 24))}</td>
-              <td>$${(Number(reservation.total_price) / Math.ceil((new Date(reservation.check_out).getTime() - new Date(reservation.check_in).getTime()) / (1000 * 60 * 60 * 24))).toFixed(2)}</td>
-              <td>$${Number(reservation.total_price).toFixed(2)}</td>
-            </tr>
-          </tbody>
-        </table>
-        
-        <div class="total">
-          Total: $${Number(reservation.total_price).toFixed(2)}
-        </div>
-        
-        ${reservation.special_requests ? `<div class="section"><h3>Special Requests</h3><p>${reservation.special_requests}</p></div>` : ''}
-        
-        <div class="footer">
-          <p>Thank you for staying with us!</p>
-          <p>Generated on ${new Date().toLocaleDateString()}</p>
-        </div>
-      </body>
-      </html>
-    `
-    invoiceWindow.document.write(invoiceHTML)
-    invoiceWindow.document.close()
-    invoiceWindow.print()
+  function viewInvoice(reservation: Reservation) {
+    // Open invoice page in a new tab
+    window.open(`/invoice/${reservation.id}`, '_blank')
   }
 
   // Use the same logic as todayArrivals/todayDepartures to avoid duplication
@@ -652,18 +574,24 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                 <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{formatDateForDisplay(r.check_out)}</td>
                                 <td className="px-4 md:px-6 py-4">
                                   <span className={`px-2 py-1 text-xs rounded-full ${
-                                    r.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
-                                    r.status === 'checked_in' ? 'bg-green-100 text-green-700' :
+                                    r.status === 'deposit_paid' ? 'bg-yellow-100 text-yellow-700' :
+                                    r.status === 'paid_in_full' ? 'bg-green-100 text-green-700' :
+                                    r.status === 'checked_in' ? 'bg-blue-100 text-blue-700' :
                                     r.status === 'checked_out' ? 'bg-gray-100 text-gray-700' :
                                     r.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                    'bg-yellow-100 text-yellow-700'
+                                    'bg-gray-100 text-gray-700'
                                   }`}>
-                                    {r.status}
+                                    {r.status === 'deposit_paid' ? 'Deposit Paid' :
+                                     r.status === 'paid_in_full' ? 'Paid in Full' :
+                                     r.status === 'checked_in' ? 'Checked In' :
+                                     r.status === 'checked_out' ? 'Checked Out' :
+                                     r.status === 'cancelled' ? 'Cancelled' :
+                                     'Pending'}
                                   </span>
                                 </td>
                                 <td className="px-4 md:px-6 py-4" onClick={(e) => e.stopPropagation()}>
                                   <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                                    {r.status === 'confirmed' && (
+                                    {(r.status === 'deposit_paid' || r.status === 'paid_in_full') && (
                                       <button
                                         onClick={() => handleCheckIn(r.id)}
                                         className="px-2 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded text-xs sm:text-sm font-medium transition-colors"
@@ -688,7 +616,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                       </button>
                                     )}
                                     <button
-                                      onClick={() => generateInvoice(r)}
+                                      onClick={() => viewInvoice(r)}
                                       className="px-2 py-1 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded text-xs sm:text-sm font-medium transition-colors"
                                     >
                                       Invoice

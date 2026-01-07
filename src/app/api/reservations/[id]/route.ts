@@ -26,8 +26,9 @@ export async function GET(
         r.cancellation_notes,
         rm.room_number,
         rm.name as room_name,
+        rm.price_per_night,
         g.id as guest_id,
-        g.first_name || ' ' || g.last_name as guest_name,
+        COALESCE(r.guest_first_name || ' ' || r.guest_last_name, g.first_name || ' ' || g.last_name) as guest_name,
         g.email as guest_email,
         g.phone as guest_phone,
         g.address as guest_address,
@@ -174,7 +175,7 @@ export async function PATCH(
     if (changes.length > 0 && updatedReservation.length > 0) {
       try {
         const res = updatedReservation[0]
-        await sendReservationUpdate(
+        const emailResult = await sendReservationUpdate(
           {
             guestName: res.guest_name as string,
             guestEmail: res.guest_email as string,
@@ -190,9 +191,18 @@ export async function PATCH(
           },
           changes
         )
-      } catch (emailError) {
+        
+        if (!emailResult.success) {
+          console.error('[Staff Update] Failed to send update email:', {
+            reservationId: res.id,
+            error: emailResult.error?.message,
+            code: emailResult.error?.code,
+          })
+          // Don't fail the update if email fails
+        }
+      } catch (emailError: any) {
         // Don't fail the update if email fails
-        console.error('Error sending update email:', emailError)
+        console.error('[Staff Update] Exception sending update email:', emailError.message)
       }
     }
 
@@ -258,8 +268,8 @@ export async function DELETE(
     }
 
     // Release the room (set to available if it was occupied/cleaning, or keep current status if available/maintenance)
-    // Only update room status if reservation was confirmed or checked_in
-    if (reservation.status === 'confirmed' || reservation.status === 'checked_in') {
+    // Only update room status if reservation was paid or checked_in
+    if (reservation.status === 'deposit_paid' || reservation.status === 'paid_in_full' || reservation.status === 'checked_in') {
       await sql`
         UPDATE rooms 
         SET status = 'available'
@@ -268,23 +278,27 @@ export async function DELETE(
     }
 
     // Send cancellation email
-    try {
-      await sendCancellationEmail({
-        guestName: reservation.guest_name as string,
-        guestEmail: reservation.guest_email as string,
-        reservationId: reservation.id as number,
-        roomName: reservation.room_name as string,
-        roomNumber: reservation.room_number as string,
-        checkIn: reservation.check_in as string,
-        checkOut: reservation.check_out as string,
-        numGuests: reservation.num_guests as number,
-        totalPrice: parseFloat(reservation.total_price as string),
-        specialRequests: reservation.special_requests as string | undefined,
-        status: 'cancelled',
+    const emailResult = await sendCancellationEmail({
+      guestName: reservation.guest_name as string,
+      guestEmail: reservation.guest_email as string,
+      reservationId: reservation.id as number,
+      roomName: reservation.room_name as string,
+      roomNumber: reservation.room_number as string,
+      checkIn: reservation.check_in as string,
+      checkOut: reservation.check_out as string,
+      numGuests: reservation.num_guests as number,
+      totalPrice: parseFloat(reservation.total_price as string),
+      specialRequests: reservation.special_requests as string | undefined,
+      status: 'cancelled',
+    })
+    
+    if (!emailResult.success) {
+      console.error('[Staff Cancel] Failed to send cancellation email:', {
+        reservationId: reservation.id,
+        error: emailResult.error?.message,
+        code: emailResult.error?.code,
       })
-    } catch (emailError) {
       // Don't fail the cancellation if email fails
-      console.error('Error sending cancellation email:', emailError)
     }
 
     return NextResponse.json({ success: true, reservation: result[0] })

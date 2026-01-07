@@ -100,7 +100,7 @@ DATABASE_URL=your_connection_string node scripts/add-payment-columns.mjs
 This will add the following columns:
 - `payment_reference` - Payment order reference
 - `payment_status` - Payment status (paid, failed, etc.)
-- `payment_transaction_id` - WiPay transaction ID
+- `payment_transaction_id` - DimePay transaction ID
 - `payment_date` - Payment completion timestamp
 
 **Note:** The application will work without these columns, but payment tracking information won't be stored.
@@ -176,7 +176,7 @@ This will add the following columns:
 - ✅ Public booking API endpoints
 - ✅ Multi-step booking process (dates → room selection → guest details → confirmation)
 - ✅ Real-time room availability checking
-- ✅ Payment integration (WiPay)
+- ✅ Payment integration (DimePay)
 - ✅ Email notifications (booking confirmations, updates, cancellations)
 - ⏳ Guest account area - Coming next
 - ⏳ Booking modification/cancellation by guests - Coming next
@@ -192,7 +192,7 @@ This will add the following columns:
 - **Authentication**: JWT with jose
 - **Password Hashing**: bcryptjs
 - **Email Service**: Resend API
-- **Payment Gateway**: WiPay
+- **Payment Gateway**: DimePay
 - **Image Optimization**: Next.js Image component
 - **Hosting**: Vercel
 

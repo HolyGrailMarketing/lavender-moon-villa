@@ -43,7 +43,7 @@ export type Reservation = {
   check_out: Date;
   num_guests: number;
   total_price: number;
-  status: 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled';
+  status: 'pending' | 'deposit_paid' | 'paid_in_full' | 'checked_in' | 'checked_out' | 'cancelled';
   special_requests: string | null;
   created_at: Date;
   updated_at: Date;

@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
@@ -8,6 +8,43 @@ import { useSearchParams } from 'next/navigation'
 function PaymentSuccessContent() {
   const searchParams = useSearchParams()
   const reservationId = searchParams.get('reservation_id')
+  const [customReservationId, setCustomReservationId] = useState<string | null>(null)
+
+  useEffect(() => {
+    // If reservationId starts with "LMV", it's already the custom ID
+    if (reservationId && reservationId.startsWith('LMV')) {
+      setCustomReservationId(reservationId)
+    } else if (reservationId && /^\d+$/.test(reservationId)) {
+      // It's a numeric ID, try to fetch the custom ID
+      // Note: This requires authentication, so it may fail for public users
+      // In that case, we'll just show the numeric ID
+      fetch(`/api/reservations/${reservationId}`)
+        .then(res => {
+          if (!res.ok) {
+            // If auth fails, just use numeric ID
+            setCustomReservationId(reservationId)
+            return null
+          }
+          return res.json()
+        })
+        .then(data => {
+          if (data && data.reservation_id) {
+            setCustomReservationId(data.reservation_id)
+          } else {
+            setCustomReservationId(reservationId)
+          }
+        })
+        .catch(err => {
+          console.error('Error fetching reservation:', err)
+          // Fallback to numeric ID on error
+          setCustomReservationId(reservationId)
+        })
+    } else if (reservationId) {
+      setCustomReservationId(reservationId)
+    }
+  }, [reservationId])
+
+  const displayReservationId = customReservationId || reservationId
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-moon-cream via-lavender-pale to-moon-cream">
@@ -41,8 +78,8 @@ function PaymentSuccessContent() {
           <h1 className="text-3xl md:text-4xl font-serif text-lavender-deep mb-4">Payment Successful!</h1>
           <p className="text-gray-600 mb-2">Your booking has been confirmed.</p>
           
-          {reservationId && (
-            <p className="text-sm text-gray-500 mb-8">Reservation #: {reservationId}</p>
+          {displayReservationId && (
+            <p className="text-sm text-gray-500 mb-8">Reservation #: {displayReservationId}</p>
           )}
           
           <div className="bg-lavender-pale rounded-lg p-6 mb-8 text-left">
@@ -69,12 +106,28 @@ function PaymentSuccessContent() {
             </ul>
           </div>
 
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-800">
+              <strong>Manage Your Reservation:</strong> You can view, edit, or cancel your reservation anytime by visiting{' '}
+              <Link href="/my-reservation" className="text-blue-600 hover:underline font-semibold">
+                Manage My Reservation
+              </Link>
+              {' '}and entering your email and reservation ID.
+            </p>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/"
               className="px-8 py-3 bg-lavender-deep text-white rounded-lg hover:bg-lavender-medium transition-colors"
             >
               Back to Home
+            </Link>
+            <Link
+              href="/my-reservation"
+              className="px-8 py-3 border-2 border-lavender-deep text-lavender-deep rounded-lg hover:bg-lavender-pale transition-colors"
+            >
+              Manage Reservation
             </Link>
             <Link
               href="/book"

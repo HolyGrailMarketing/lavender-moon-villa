@@ -58,7 +58,7 @@ export default function Home() {
       <section id="about" className="py-24 px-8 bg-moon-cream">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
           <div className="relative">
-            <div className="aspect-[4/5] rounded overflow-hidden">
+            <div className="aspect-[4/5] rounded overflow-hidden relative">
               <Image 
                 src="/Pictures/Environment/Lavender%20Moon%20Environment%20(27).JPG" 
                 alt="Sunset view from Lavender Moon Villas" 

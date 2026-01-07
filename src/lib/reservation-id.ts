@@ -19,25 +19,52 @@ export async function generateReservationId(checkInDate: string): Promise<string
   const day = String(date.getDate()).padStart(2, '0')
   const datePart = `${year}${month}${day}` // YYMMDD format
 
-  // Get the count of reservations for this date
-  // We'll count reservations created on this date (using created_at) or with this check_in date
-  const startOfDay = new Date(date)
-  startOfDay.setHours(0, 0, 0, 0)
-  const endOfDay = new Date(date)
-  endOfDay.setHours(23, 59, 59, 999)
-
-  // Count existing reservations with check_in on this date
+  // Count existing reservations with the same check_in date AND existing reservation_id pattern
+  // This ensures we get the correct sequence number even if some reservations don't have reservation_id yet
+  const expectedPattern = `${PREFIX}-${datePart}-%`
+  
   const countResult = await sql`
     SELECT COUNT(*) as count
     FROM reservations
     WHERE DATE(check_in) = DATE(${checkInDate})
+      AND (reservation_id LIKE ${expectedPattern} OR reservation_id IS NULL)
   `
 
   const count = parseInt(countResult[0]?.count || '0', 10)
-  const sequenceNumber = String(count + 1).padStart(2, '0') // Next number, padded to 2 digits
+  
+  // Find the highest sequence number for this date to avoid duplicates
+  // This handles cases where reservations might be created concurrently
+  const maxSequenceResult = await sql`
+    SELECT reservation_id
+    FROM reservations
+    WHERE DATE(check_in) = DATE(${checkInDate})
+      AND reservation_id LIKE ${expectedPattern}
+    ORDER BY reservation_id DESC
+    LIMIT 1
+  `
+
+  let nextSequence = count + 1
+  
+  // If we found an existing reservation_id, extract its sequence number
+  if (maxSequenceResult.length > 0 && maxSequenceResult[0].reservation_id) {
+    const existingId = maxSequenceResult[0].reservation_id as string
+    // Extract the sequence number (last 2 digits after the last hyphen)
+    const parts = existingId.split('-')
+    if (parts.length === 3) {
+      const existingSequence = parseInt(parts[2], 10)
+      if (!isNaN(existingSequence)) {
+        // Use the next sequence number after the highest existing one
+        nextSequence = existingSequence + 1
+      }
+    }
+  }
+
+  const sequenceNumber = String(nextSequence).padStart(2, '0') // Pad to 2 digits
 
   return `${PREFIX}-${datePart}-${sequenceNumber}`
 }
+
+
 
 
 
