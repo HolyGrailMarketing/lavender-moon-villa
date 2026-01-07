@@ -32,7 +32,6 @@ export default function DimePayPaymentPage() {
     const loadDimePaySDK = async () => {
       try {
         // Import the DimePay Web SDK - it exports { initPayment, initCard }
-        // @ts-expect-error - DimePay SDK package.json exports field doesn't properly expose types
         const { initPayment } = await import('@dimepay/web-sdk')
 
         // Get client ID from environment
