@@ -195,7 +195,7 @@ export default function CheckInFormPage() {
 
           {/* Footer - For internal use */}
           <div className="mt-16 pt-6 border-t border-gray-300 text-xs text-gray-500 print:mt-8">
-            <p className="text-center">Lavender Moon Villas • Discovery Bay, Jamaica • reservations@lavendermoon.net</p>
+            <p className="text-center">Lavender Moon Villas • Breadnut Hill, Ocho Rios, St. Ann Parish, Jamaica • reservations@lavendermoon.net</p>
           </div>
         </div>
       </div>

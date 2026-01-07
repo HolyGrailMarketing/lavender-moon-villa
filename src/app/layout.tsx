@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import CookieConsent from '@/components/CookieConsent'
 
 export const metadata: Metadata = {
   title: 'Lavender Moon Villas | Tranquil Luxury Retreat',
@@ -24,6 +25,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans bg-moon-cream text-gray-800">
         {children}
+        <CookieConsent />
       </body>
     </html>
   )

@@ -539,6 +539,27 @@ export default function BookPage() {
                 </div>
               </div>
 
+              {/* Privacy Notice */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-lavender-deep mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <div className="text-sm text-gray-600">
+                    <p className="mb-2">
+                      By proceeding with this booking, you agree to our{' '}
+                      <Link href="/privacy" className="text-lavender-deep hover:underline font-medium" target="_blank">
+                        Privacy Policy
+                      </Link>. 
+                      Your personal information will be used to process your reservation and communicate with you about your stay.
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Payment processing is handled securely by DimePay. Your payment details are transmitted directly to our payment provider.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <button
                 type="submit"
                 disabled={loading}

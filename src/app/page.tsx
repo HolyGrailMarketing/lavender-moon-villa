@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import HeroSlideshow from '@/components/HeroSlideshow'
 import ImageGallery from '@/components/ImageGallery'
+import Footer from '@/components/Footer'
 
 // Force dynamic rendering to ensure proper deployment on Vercel
 export const dynamic = 'force-dynamic'
@@ -405,21 +406,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-8 bg-lavender-pale text-center">
-        <div className="mb-4">
-          <Image 
-            src="/Pictures/Logo.png" 
-            alt="Lavender Moon Villas" 
-            width={100} 
-            height={100} 
-            className="mx-auto h-24 w-auto" 
-            style={{ width: 'auto', height: '6rem' }} 
-            quality={80}
-          />
-        </div>
-        <p className="font-serif italic text-gray-600 mb-6">Where dreams rest beneath the lavender sky</p>
-        <p className="text-sm text-gray-500">© 2025 Lavender Moon Villas. All rights reserved.</p>
-      </footer>
+      <Footer />
     </main>
   )
 }
