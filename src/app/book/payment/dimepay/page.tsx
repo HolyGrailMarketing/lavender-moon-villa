@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-export default function DimePayPaymentPage() {
+function DimePayPaymentContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -214,6 +214,25 @@ export default function DimePayPaymentPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function DimePayPaymentPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div className="p-12 text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-lavender-pale border-t-lavender-deep mb-4"></div>
+              <p className="text-gray-600">Loading payment page...</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    }>
+      <DimePayPaymentContent />
+    </Suspense>
   )
 }
 
