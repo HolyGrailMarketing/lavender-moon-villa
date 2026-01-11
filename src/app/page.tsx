@@ -3,6 +3,8 @@ import Image from 'next/image'
 import HeroSlideshow from '@/components/HeroSlideshow'
 import ImageGallery from '@/components/ImageGallery'
 import Footer from '@/components/Footer'
+import HomeRoomCard from '@/components/HomeRoomCard'
+import { getSuites, getRooms } from '@/lib/rooms-data'
 
 // Force dynamic rendering to ensure proper deployment on Vercel
 export const dynamic = 'force-dynamic'
@@ -190,54 +192,17 @@ export default function Home() {
         <div className="max-w-6xl mx-auto mb-16">
           <h3 className="text-2xl font-serif text-lavender-deep mb-8 text-center">Premium Suites</h3>
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { slug: 'victoria-suite', name: 'Victoria Suite', desc: 'Premium • Exceptional Luxury', price: '$480/night', img: '/Pictures/Victoria-Suite/placeholder.jpg', features: ['King Bed', 'Living Area', 'Mountain View'] },
-              { slug: 'alexander-suite', name: 'Alexander Suite', desc: 'Luxurious • Stunning Views', price: '$280/night', img: '/Pictures/207-A/Lavender%20Moon%20207%20A%20(1).JPG', features: ['Two Full Beds', 'Balcony', 'Sea & Mountain Views'] },
-              { slug: 'renee-suite', name: 'Renee Suite', desc: 'Elegant • Comfort & Style', price: '$280/night', img: '/Pictures/Renee-Suite/placeholder.jpg', features: ['Queen Bed', 'Private Bath', 'WiFi'] },
-            ].map((room, i) => (
-              <Link key={i} href={`/rooms/${room.slug}`} className="relative aspect-[3/4] rounded-xl overflow-hidden group shadow-xl cursor-pointer block">
-                {room.img.includes('placeholder') ? (
-                  <div className="absolute inset-0 bg-lavender-pale flex items-center justify-center">
-                    <div className="text-center text-gray-500">
-                      <svg className="w-16 h-16 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <p className="text-sm">Images coming soon</p>
-                    </div>
-                  </div>
-                ) : (
-                  <Image 
-                    src={room.img} 
-                    alt={room.name} 
-                    fill 
-                    className="object-cover group-hover:scale-105 transition-transform duration-700" 
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    quality={70}
-                    loading={i === 0 ? "eager" : "lazy"}
-                    placeholder="blur"
-                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute top-4 right-4 bg-moon-gold text-white px-3 py-1 rounded-full text-xs font-medium">
-                  SUITE
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <h3 className="text-2xl font-serif mb-2">{room.name}</h3>
-                  <p className="text-gray-300 text-sm mb-2">{room.desc}</p>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {room.features.map((f, j) => (
-                      <span key={j} className="text-xs bg-white/20 px-2 py-1 rounded">{f}</span>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-moon-gold font-semibold text-lg">From {room.price}</span>
-                    <span className="text-xs bg-white/20 group-hover:bg-white/30 px-3 py-1 rounded transition-colors">
-                      View Details →
-                    </span>
-                  </div>
-                </div>
-              </Link>
+            {getSuites().map((room) => (
+              <HomeRoomCard
+                key={room.slug}
+                slug={room.slug}
+                name={room.name}
+                desc={room.tagline}
+                price={`From $${room.price}/night`}
+                features={room.highlights.slice(0, 3)}
+                type="suite"
+                aspect="aspect-[3/4]"
+              />
             ))}
           </div>
         </div>
@@ -246,45 +211,17 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <h3 className="text-2xl font-serif text-lavender-deep mb-8 text-center">Rooms</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {[
-              { slug: 'room-108', name: 'Room 108-JA', price: '$225/night', img: '/Pictures/Room-108/placeholder.jpg' },
-              { slug: 'room-109-ls', name: 'Room 109-LS', price: '$220/night', img: '/Pictures/Room%20206-B/Lavender%20Moon%20206B%20(1).JPG' },
-              { slug: 'room-209-jf', name: 'Room 209-JF', price: '$220/night', img: '/Pictures/207-A/Lavender%20Moon%20207%20A%20(2).JPG' },
-              { slug: 'room-208ab', name: 'Room 208AB', price: '$280/night', img: '/Pictures/Room-208AB/placeholder.jpg' },
-              { slug: 'room-208a', name: 'Room 208A', price: '$190/night', img: '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(2).JPG' },
-              { slug: 'room-106', name: 'Room 106-JW', price: '$325/night', img: '/Pictures/106-JW/Lavender%20Moon%20106JW%20(3).JPG' },
-              { slug: 'room-107-cf', name: 'Room 107-CF', price: '$260/night', img: '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(1).JPG' },
-              { slug: 'room-207-a', name: 'Room 207-A', price: '$180/night', img: '/Pictures/207-A/Lavender%20Moon%20207%20A%20(1).JPG' },
-            ].map((room, i) => (
-              <Link key={i} href={`/rooms/${room.slug}`} className="relative aspect-[4/5] rounded-lg overflow-hidden group shadow-lg hover:shadow-xl transition-shadow cursor-pointer block">
-                {room.img.includes('placeholder') ? (
-                  <div className="absolute inset-0 bg-lavender-pale flex items-center justify-center">
-                    <div className="text-center text-gray-500">
-                      <svg className="w-12 h-12 mx-auto mb-1 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <p className="text-xs">Coming soon</p>
-                    </div>
-                  </div>
-                ) : (
-                  <Image 
-                    src={room.img} 
-                    alt={room.name} 
-                    fill 
-                    className="object-cover group-hover:scale-105 transition-transform duration-500" 
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"
-                    quality={70}
-                    loading="lazy"
-                    placeholder="blur"
-                    blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 text-white">
-                  <h3 className="text-base md:text-lg font-serif mb-1">{room.name}</h3>
-                  <span className="text-moon-gold font-medium text-sm">From {room.price}</span>
-                </div>
-              </Link>
+            {getRooms().map((room) => (
+              <HomeRoomCard
+                key={room.slug}
+                slug={room.slug}
+                name={room.name}
+                desc={room.tagline}
+                price={`From $${room.price}/night`}
+                features={[]}
+                type="room"
+                aspect="aspect-[4/5]"
+              />
             ))}
           </div>
         </div>

@@ -7,6 +7,8 @@ export interface RoomData {
   description: string
   price: number
   maxGuests: number
+  extraGuestCharge?: number // Charge per additional guest beyond base capacity
+  extraGuestMax?: number // Maximum guests including extra guests (if applicable)
   beds: string
   size: string
   images: string[]
@@ -41,7 +43,9 @@ export const roomsData: RoomData[] = [
     tagline: 'Luxurious • Stunning Views',
     description: 'The Alexander Suite features two full-sized beds with a private balcony offering stunning sea and mountain views. Equipped with modern conveniences including a microwave, coffee pot, and mini fridge.',
     price: 280,
-    maxGuests: 4,
+    maxGuests: 2,
+    extraGuestCharge: 60,
+    extraGuestMax: 3,
     beds: 'Two Full Beds',
     size: 'Large',
     images: [
@@ -60,7 +64,9 @@ export const roomsData: RoomData[] = [
     tagline: 'Elegant • Comfort & Style',
     description: 'The Renee Suite combines elegance with comfort, offering a peaceful retreat with beautiful surroundings. Ideal for couples or solo travelers seeking a refined stay.',
     price: 280,
-    maxGuests: 4,
+    maxGuests: 2,
+    extraGuestCharge: 60,
+    extraGuestMax: 3,
     beds: 'Queen Bed',
     size: 'Large',
     images: [
@@ -79,6 +85,8 @@ export const roomsData: RoomData[] = [
     description: 'Room 106 is our most spacious standard accommodation featuring a full-sized kitchen, dining and living area, two queen beds, and both a private back porch and large front verandah with stunning sea views.',
     price: 325,
     maxGuests: 4,
+    extraGuestCharge: 60,
+    extraGuestMax: 5,
     beds: 'Two Queen Beds',
     size: 'Extra Large',
     images: [
@@ -98,7 +106,9 @@ export const roomsData: RoomData[] = [
     tagline: 'Comfortable • Modern',
     description: 'A comfortable and modern room perfect for couples or solo travelers. Features quality amenities and a peaceful atmosphere.',
     price: 260,
-    maxGuests: 2,
+    maxGuests: 4,
+    extraGuestCharge: 60,
+    extraGuestMax: 5,
     beds: 'Queen Bed',
     size: 'Standard',
     images: [
@@ -117,7 +127,7 @@ export const roomsData: RoomData[] = [
     tagline: 'Cozy • Garden View',
     description: 'A cozy room with garden views, perfect for a relaxing stay. Features all essential amenities for a comfortable visit.',
     price: 225,
-    maxGuests: 2,
+    maxGuests: 4,
     beds: 'Queen Bed',
     size: 'Standard',
     images: [
@@ -134,7 +144,7 @@ export const roomsData: RoomData[] = [
     tagline: 'Cozy • Modern Amenities',
     description: 'A cozy room with modern amenities, ideal for couples or solo travelers seeking comfort and convenience.',
     price: 220,
-    maxGuests: 2,
+    maxGuests: 4,
     beds: 'Queen Bed',
     size: 'Standard',
     images: [
@@ -143,6 +153,51 @@ export const roomsData: RoomData[] = [
     amenities: ['WiFi', 'AC', 'Private Bathroom'],
     features: ['Modern', 'AC', 'WiFi'],
     highlights: ['Modern Design', 'Comfortable', 'Private Bathroom'],
+  },
+  {
+    slug: 'room-206-a',
+    name: 'Room 206-A',
+    type: 'room',
+    tagline: 'Comfortable • Modern',
+    description: 'A comfortable room with modern amenities and scenic views.',
+    price: 200,
+    maxGuests: 4,
+    beds: 'Two Beds',
+    size: 'Standard',
+    images: [],
+    amenities: ['WiFi', 'AC', 'Private Bathroom'],
+    features: ['Modern', 'AC', 'WiFi'],
+    highlights: ['Modern Design', 'Comfortable', 'Private Bathroom'],
+  },
+  {
+    slug: 'room-206-b',
+    name: 'Room 206-B',
+    type: 'room',
+    tagline: 'Cozy • Comfortable',
+    description: 'A cozy room perfect for a comfortable stay.',
+    price: 190,
+    maxGuests: 2,
+    beds: 'Queen Bed',
+    size: 'Standard',
+    images: [],
+    amenities: ['WiFi', 'AC', 'Private Bathroom'],
+    features: ['Cozy', 'AC', 'WiFi'],
+    highlights: ['Comfortable', 'Private Bathroom', 'Modern Amenities'],
+  },
+  {
+    slug: 'room-207-b',
+    name: 'Room 207-B',
+    type: 'room',
+    tagline: 'Comfortable • Scenic Views',
+    description: 'A comfortable room with scenic views, perfect for a relaxing stay.',
+    price: 180,
+    maxGuests: 2,
+    beds: 'Queen Bed',
+    size: 'Standard',
+    images: [],
+    amenities: ['WiFi', 'AC', 'Private Bathroom'],
+    features: ['Comfortable', 'AC', 'WiFi'],
+    highlights: ['Scenic Views', 'Private Bathroom', 'Modern Amenities'],
   },
   {
     slug: 'room-207-a',
@@ -169,7 +224,7 @@ export const roomsData: RoomData[] = [
     tagline: 'Standard • Essential Comforts',
     description: 'A standard room with all essential comforts for a pleasant stay. Great value accommodation.',
     price: 190,
-    maxGuests: 2,
+    maxGuests: 4,
     beds: 'Queen Bed',
     size: 'Standard',
     images: [
@@ -186,7 +241,7 @@ export const roomsData: RoomData[] = [
     tagline: 'Family • Connecting Rooms',
     description: 'Connecting rooms ideal for families or groups. Spacious accommodation with the convenience of adjoining spaces.',
     price: 280,
-    maxGuests: 4,
+    maxGuests: 6,
     beds: 'Two Queen Beds',
     size: 'Large (Connecting)',
     images: [
@@ -203,7 +258,7 @@ export const roomsData: RoomData[] = [
     tagline: 'Spacious • Balcony',
     description: 'A spacious room with a private balcony offering mountain views. Perfect for guests who appreciate outdoor space.',
     price: 220,
-    maxGuests: 3,
+    maxGuests: 4,
     beds: 'Queen Bed + Single',
     size: 'Large',
     images: [

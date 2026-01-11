@@ -77,7 +77,15 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} Lavender Moon Villas. All rights reserved.
           </p>
           <p className="mt-2 text-xs text-gray-500">
-            Compliant with the Jamaican Data Protection Act
+            Powered by{' '}
+            <a 
+              href="https://holygrailmarketinggroup.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hover:text-moon-gold transition-colors"
+            >
+              Holy Grail Studios
+            </a>
           </p>
         </div>
       </div>

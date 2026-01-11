@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
@@ -16,6 +16,33 @@ export default function RoomDetailPage() {
   const [checkIn, setCheckIn] = useState('')
   const [checkOut, setCheckOut] = useState('')
   const [guests, setGuests] = useState(1)
+  const [loadedImages, setLoadedImages] = useState<string[]>([])
+  const [imagesLoading, setImagesLoading] = useState(true)
+
+  // Fetch images dynamically from the folder
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const response = await fetch(`/api/rooms/${slug}/images`)
+        if (response.ok) {
+          const data = await response.json()
+          setLoadedImages(data.images || [])
+        } else {
+          console.warn('Failed to fetch images:', response.status)
+          setLoadedImages([])
+        }
+      } catch (error) {
+        console.warn('Error fetching images:', error)
+        setLoadedImages([])
+      } finally {
+        setImagesLoading(false)
+      }
+    }
+
+    if (slug) {
+      fetchImages()
+    }
+  }, [slug])
 
   if (!room) {
     return (
@@ -31,9 +58,12 @@ export default function RoomDetailPage() {
     )
   }
 
-  // Use first available image or a placeholder
-  const displayImages = room.images.filter(img => !img.includes('placeholder'))
-  const hasImages = displayImages.length > 0
+  // Use dynamically loaded images first, fall back to hardcoded only if no dynamic images
+  const hardcodedImages = room.images.filter(img => !img.includes('placeholder'))
+  
+  // Prefer dynamic images over hardcoded - only use hardcoded as fallback
+  const displayImages = loadedImages.length > 0 ? loadedImages : hardcodedImages
+  const hasImages = displayImages.length > 0 || !imagesLoading
 
   const handleBookNow = () => {
     // Navigate to booking page with room pre-selected

@@ -13,6 +13,13 @@ const nextConfig = {
     dangerouslyAllowSVG: false,
     // Enable image optimization
     unoptimized: false,
+    // Allow images from Vercel Blob Storage
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+      },
+    ],
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
