@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession } from '@/lib/session'
 import { generateReservationId } from '@/lib/reservation-id'
 
 export const dynamic = 'force-dynamic'

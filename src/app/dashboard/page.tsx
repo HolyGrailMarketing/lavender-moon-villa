@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getSession } from '@/lib/auth'
+import { getSession } from '@/lib/session'
 import DashboardClient from './DashboardClient'
 
 export default async function Dashboard() {

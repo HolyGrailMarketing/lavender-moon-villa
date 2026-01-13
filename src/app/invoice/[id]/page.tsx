@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
+import { roomsData } from '@/lib/rooms-data'
 
 interface InvoiceData {
   id: number
@@ -17,6 +18,8 @@ interface InvoiceData {
   room_name: string
   room_number: string
   price_per_night: number | string | null
+  max_guests: number | null
+  room_id: number | null
   guest_name: string
   guest_email: string
   source: string
@@ -83,7 +86,26 @@ export default function InvoicePage() {
   const additionalItems = invoice.additional_items || []
   const pricePerNight = Number(invoice.price_per_night) || 0
   const roomSubtotal = pricePerNight * nights
-  // Subtotal is the room accommodation before service charge and additional items
+  
+  // Calculate additional guest charge
+  const baseCapacity = invoice.max_guests || 0
+  const totalGuests = invoice.num_guests
+  const guestsOverCapacity = Math.max(0, totalGuests - baseCapacity)
+  
+  // Find room data to get extraGuestCharge
+  const roomData = roomsData.find(r => 
+    r.name === invoice.room_name || 
+    r.name === invoice.room_number ||
+    invoice.room_name?.includes(r.name) ||
+    invoice.room_number?.includes(r.name)
+  ) || null
+  
+  const extraGuestChargePerNight = roomData?.extraGuestCharge || 0
+  const additionalGuestCharge = extraGuestChargePerNight > 0 && guestsOverCapacity > 0
+    ? extraGuestChargePerNight * guestsOverCapacity * nights
+    : 0
+  
+  // Subtotal is the room accommodation before service charge, additional guest charge, and additional items
   const subtotal = roomSubtotal
   const amountPaid = Number(invoice.amount_paid) || 0
   const outstandingBalance = Number(invoice.total_price) - amountPaid
@@ -205,6 +227,18 @@ export default function InvoicePage() {
                   <td className="border border-gray-300 px-4 py-2 text-right font-semibold">${roomSubtotal.toFixed(2)}</td>
                 </tr>
                 
+                {/* Additional Guest Charge */}
+                {additionalGuestCharge > 0 && (
+                  <tr>
+                    <td className="border border-gray-300 px-4 py-2">
+                      Additional Guest Charge ({guestsOverCapacity} guest{guestsOverCapacity !== 1 ? 's' : ''} × ${extraGuestChargePerNight}/night)
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 text-center">{nights} {nights === 1 ? 'night' : 'nights'}</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right">${(extraGuestChargePerNight * guestsOverCapacity).toFixed(2)}/night</td>
+                    <td className="border border-gray-300 px-4 py-2 text-right font-semibold">${additionalGuestCharge.toFixed(2)}</td>
+                  </tr>
+                )}
+                
                 {/* Service Charge */}
                 {serviceCharge > 0 && (
                   <tr>
@@ -240,6 +274,12 @@ export default function InvoicePage() {
                   <td className="py-2 text-right pr-4 font-semibold">Subtotal:</td>
                   <td className="py-2 text-right font-semibold w-32">${subtotal.toFixed(2)}</td>
                 </tr>
+                {additionalGuestCharge > 0 && (
+                  <tr>
+                    <td className="py-2 text-right pr-4">Additional Guest Charge:</td>
+                    <td className="py-2 text-right w-32">${additionalGuestCharge.toFixed(2)}</td>
+                  </tr>
+                )}
                 {serviceCharge > 0 && (
                   <tr>
                     <td className="py-2 text-right pr-4">Service Charge:</td>

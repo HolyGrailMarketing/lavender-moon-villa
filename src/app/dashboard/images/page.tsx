@@ -26,9 +26,26 @@ export default function ImagesPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([])
   const [dragActive, setDragActive] = useState(false)
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const availableRooms = getMappedRoomSlugs()
+
+  // Load thumbnail for selected room
+  const loadThumbnail = async (roomSlug: string) => {
+    if (!roomSlug) return
+
+    try {
+      const response = await fetch(`/api/admin/images/thumbnail?room=${roomSlug}`)
+      if (response.ok) {
+        const data = await response.json()
+        setThumbnailUrl(data.thumbnailUrl || null)
+      }
+    } catch (error) {
+      console.error('Error loading thumbnail:', error)
+      setThumbnailUrl(null)
+    }
+  }
 
   // Load images for selected room
   const loadImages = async (roomSlug: string) => {
@@ -56,8 +73,10 @@ export default function ImagesPage() {
   useEffect(() => {
     if (selectedRoom) {
       loadImages(selectedRoom)
+      loadThumbnail(selectedRoom)
     } else {
       setImages([])
+      setThumbnailUrl(null)
     }
   }, [selectedRoom])
 
@@ -121,6 +140,33 @@ export default function ImagesPage() {
       setUploading(false)
       setUploadProgress([])
     }, 1000)
+  }
+
+  // Handle set thumbnail
+  const handleSetThumbnail = async (imageUrl: string) => {
+    if (!selectedRoom) return
+
+    try {
+      const response = await fetch('/api/admin/images/thumbnail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          roomSlug: selectedRoom,
+          thumbnailUrl: imageUrl
+        })
+      })
+
+      if (response.ok) {
+        setThumbnailUrl(imageUrl)
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to set thumbnail: ${errorData.error}`)
+      }
+    } catch (error: any) {
+      alert(`Failed to set thumbnail: ${error.message}`)
+    }
   }
 
   // Handle drag and drop
@@ -341,63 +387,89 @@ export default function ImagesPage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                {images.map((image, index) => (
-                  <div key={index} className="relative group">
-                    <div className="aspect-square relative overflow-hidden rounded-lg bg-gray-100">
-                      <Image
-                        src={image.url}
-                        alt={image.filename}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                      />
+                {images.map((image, index) => {
+                  const isThumbnail = thumbnailUrl === image.url
+                  return (
+                    <div key={index} className="relative group">
+                      <div className={`aspect-square relative overflow-hidden rounded-lg bg-gray-100 ${isThumbnail ? 'ring-2 ring-moon-gold ring-offset-2' : ''}`}>
+                        <Image
+                          src={image.url}
+                          alt={image.filename}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                        />
+                        {isThumbnail && (
+                          <div className="absolute top-2 left-2 bg-moon-gold text-white px-2 py-1 rounded text-xs font-medium z-10">
+                            Thumbnail
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Overlay with actions */}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => window.open(image.url, '_blank')}
+                          className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                          title="View full size"
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        </button>
+
+                        <button
+                          onClick={() => navigator.clipboard.writeText(image.url)}
+                          className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                          title="Copy URL"
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+
+                        <button
+                          onClick={() => handleSetThumbnail(image.url)}
+                          className={`p-2 rounded-full transition-colors ${
+                            isThumbnail 
+                              ? 'bg-moon-gold/80 hover:bg-moon-gold' 
+                              : 'bg-blue-500/80 hover:bg-blue-600/80'
+                          }`}
+                          title={isThumbnail ? "Current thumbnail" : "Set as thumbnail"}
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            {isThumbnail ? (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            ) : (
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            )}
+                          </svg>
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteImage(image)}
+                          className="p-2 bg-red-500/80 hover:bg-red-600/80 rounded-full transition-colors"
+                          title="Delete image"
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      {/* Image info */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-2 rounded-b-lg">
+                        <p className="text-xs truncate">{image.filename}</p>
+                        {image.size && (
+                          <p className="text-xs opacity-75">
+                            {(image.size / 1024 / 1024).toFixed(1)}MB
+                          </p>
+                        )}
+                      </div>
                     </div>
-
-                    {/* Overlay with actions */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center space-x-2">
-                      <button
-                        onClick={() => window.open(image.url, '_blank')}
-                        className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
-                        title="View full size"
-                      >
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      </button>
-
-                      <button
-                        onClick={() => navigator.clipboard.writeText(image.url)}
-                        className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
-                        title="Copy URL"
-                      >
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                      </button>
-
-                      <button
-                        onClick={() => handleDeleteImage(image)}
-                        className="p-2 bg-red-500/80 hover:bg-red-600/80 rounded-full transition-colors"
-                        title="Delete image"
-                      >
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
-
-                    {/* Image info */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-2 rounded-b-lg">
-                      <p className="text-xs truncate">{image.filename}</p>
-                      {image.size && (
-                        <p className="text-xs opacity-75">
-                          {(image.size / 1024 / 1024).toFixed(1)}MB
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>

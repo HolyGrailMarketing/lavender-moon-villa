@@ -378,7 +378,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
         </div>
       </header>
 
-      <div className="flex relative">
+      <div className="flex relative" style={{ height: 'calc(100vh - 72px)' }}>
         {/* Mobile Overlay */}
         {sidebarOpen && (
           <div
@@ -390,9 +390,10 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
         {/* Sidebar */}
         <aside className={`
           fixed md:static inset-y-0 left-0 z-50
-          w-64 bg-white border-r min-h-[calc(100vh-72px)] p-4
+          w-64 bg-white border-r h-full md:h-auto md:min-h-[calc(100vh-72px)] p-4
           transform transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          overflow-y-auto
         `}>
           <nav className="space-y-2">
             {[
@@ -458,7 +459,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8 w-full">
+        <main className="flex-1 p-4 md:p-8 w-full overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lavender-deep"></div>

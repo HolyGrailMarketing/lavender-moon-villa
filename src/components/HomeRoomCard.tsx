@@ -24,9 +24,10 @@ export default function HomeRoomCard({ slug, name, desc, price, features, type, 
         const response = await fetch(`/api/rooms/${slug}/images`)
         if (response.ok) {
           const data = await response.json()
-          const images = data.images || []
-          if (images.length > 0) {
-            setImageUrl(images[0])
+          // Use thumbnail if available, otherwise use first image
+          const imageToUse = data.thumbnail || (data.images && data.images[0])
+          if (imageToUse) {
+            setImageUrl(imageToUse)
           }
         }
       } catch (error) {

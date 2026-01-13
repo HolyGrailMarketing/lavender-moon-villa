@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession } from '@/lib/session'
 import { sendReservationUpdate, sendCancellationEmail } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
@@ -27,6 +27,8 @@ export async function GET(
         rm.room_number,
         rm.name as room_name,
         rm.price_per_night,
+        rm.max_guests,
+        rm.id as room_id,
         g.id as guest_id,
         COALESCE(r.guest_first_name || ' ' || r.guest_last_name, g.first_name || ' ' || g.last_name) as guest_name,
         g.email as guest_email,

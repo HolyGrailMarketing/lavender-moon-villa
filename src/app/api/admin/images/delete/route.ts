@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSession } from '@/lib/auth'
+import { getSession } from '@/lib/session'
 import { deleteRoomImage } from '@/lib/image-storage'
 
 export async function DELETE(request: NextRequest) {

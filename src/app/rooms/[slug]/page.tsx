@@ -18,6 +18,7 @@ export default function RoomDetailPage() {
   const [guests, setGuests] = useState(1)
   const [loadedImages, setLoadedImages] = useState<string[]>([])
   const [imagesLoading, setImagesLoading] = useState(true)
+  const [otherRoomsImages, setOtherRoomsImages] = useState<Record<string, string>>({})
 
   // Fetch images dynamically from the folder
   useEffect(() => {
@@ -43,6 +44,43 @@ export default function RoomDetailPage() {
       fetchImages()
     }
   }, [slug])
+
+  // Fetch images for "You May Also Like" rooms
+  useEffect(() => {
+    const fetchOtherRoomsImages = async () => {
+      if (!room) return
+
+      const otherRooms = roomsData
+        .filter(r => r.slug !== room.slug)
+        .slice(0, 3)
+
+      const imagePromises = otherRooms.map(async (otherRoom) => {
+        try {
+          const response = await fetch(`/api/rooms/${otherRoom.slug}/images`)
+          if (response.ok) {
+            const data = await response.json()
+            // Use thumbnail if available, otherwise first image
+            const imageUrl = data.thumbnail || (data.images && data.images[0])
+            return { slug: otherRoom.slug, imageUrl: imageUrl || null }
+          }
+        } catch (error) {
+          console.warn(`Error fetching image for ${otherRoom.slug}:`, error)
+        }
+        return { slug: otherRoom.slug, imageUrl: null }
+      })
+
+      const results = await Promise.all(imagePromises)
+      const imagesMap: Record<string, string> = {}
+      results.forEach(({ slug, imageUrl }) => {
+        if (imageUrl) {
+          imagesMap[slug] = imageUrl
+        }
+      })
+      setOtherRoomsImages(imagesMap)
+    }
+
+    fetchOtherRoomsImages()
+  }, [room])
 
   if (!room) {
     return (
@@ -349,7 +387,7 @@ export default function RoomDetailPage() {
               .filter(r => r.slug !== room.slug)
               .slice(0, 3)
               .map((otherRoom) => {
-                const otherImages = otherRoom.images.filter(img => !img.includes('placeholder'))
+                const imageUrl = otherRoomsImages[otherRoom.slug]
                 return (
                   <Link 
                     key={otherRoom.slug}
@@ -357,9 +395,9 @@ export default function RoomDetailPage() {
                     className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow group"
                   >
                     <div className="relative aspect-[4/3] bg-gray-200">
-                      {otherImages.length > 0 ? (
+                      {imageUrl ? (
                         <Image
-                          src={otherImages[0]}
+                          src={imageUrl}
                           alt={otherRoom.name}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform duration-500"

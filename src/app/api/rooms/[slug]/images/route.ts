@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { promises as fs } from 'fs'
-import path from 'path'
 import { getRoomFolder } from '@/lib/room-folder-map'
 import { listRoomImages, isBlobStorageEnabled } from '@/lib/image-storage'
+import { sql } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
@@ -20,47 +19,49 @@ export async function GET(
       )
     }
 
+    // Fetch thumbnail URL if set
+    let thumbnailUrl: string | null = null
+    try {
+      const thumbnailResult = await sql`
+        SELECT thumbnail_url 
+        FROM room_thumbnails 
+        WHERE room_slug = ${slug}
+        LIMIT 1
+      `
+      if (thumbnailResult.length > 0) {
+        thumbnailUrl = thumbnailResult[0].thumbnail_url
+      }
+    } catch (error) {
+      // If table doesn't exist yet, that's okay - just continue without thumbnail
+      console.warn('Error fetching thumbnail (table may not exist yet):', error)
+    }
+
     let imageFiles: string[] = []
 
-    // Try Vercel Blob Storage first if enabled
+    // Get images from Vercel Blob Storage
     if (isBlobStorageEnabled()) {
       try {
         imageFiles = await listRoomImages(slug)
       } catch (error) {
-        console.warn('Error fetching from blob storage, falling back to public folder:', error)
-      }
-    }
-
-    // If no images from blob storage, fall back to public folder
-    if (imageFiles.length === 0) {
-      const imagesPath = path.join(process.cwd(), 'public', 'Pictures', folderName)
-
-      try {
-        // Read all files in the directory
-        const files = await fs.readdir(imagesPath)
-
-        // Filter for image files and supported formats
-        const imageExtensions = ['.jpg', '.jpeg', '.png', '.JPG', '.JPEG', '.PNG']
-        imageFiles = files
-          .filter(file => {
-            const ext = path.extname(file).toLowerCase()
-            return imageExtensions.includes(ext)
-          })
-          .sort() // Sort alphabetically
-          .map(file => `/Pictures/${encodeURIComponent(folderName)}/${encodeURIComponent(file)}`)
-
-      } catch (error) {
-        // If folder doesn't exist or can't be read, return empty array
-        console.warn(`Could not read images from folder ${folderName}:`, error)
+        console.warn('Error fetching from blob storage:', error)
         imageFiles = []
       }
     }
 
+    // Reorder images to put thumbnail first if it exists
+    if (thumbnailUrl && imageFiles.includes(thumbnailUrl)) {
+      imageFiles = [
+        thumbnailUrl,
+        ...imageFiles.filter(url => url !== thumbnailUrl)
+      ]
+    }
+
     return NextResponse.json({
       images: imageFiles,
+      thumbnail: thumbnailUrl,
       folder: folderName,
       count: imageFiles.length,
-      storage: isBlobStorageEnabled() ? 'blob' : 'public'
+      storage: isBlobStorageEnabled() ? 'blob' : 'none'
     })
 
   } catch (error) {

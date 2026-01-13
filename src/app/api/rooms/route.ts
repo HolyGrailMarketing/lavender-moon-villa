@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
-import { getSession } from '@/lib/auth'
+import { getSession } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,48 +72,86 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { id, status, price_per_night } = await request.json()
+    const { id, status, price_per_night, max_guests } = await request.json()
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Room id is required' },
+        { status: 400 }
+      )
+    }
 
     // Build dynamic update query based on what's provided
-    if (status !== undefined && price_per_night !== undefined) {
-      const result = await sql`
+    const hasStatus = status !== undefined
+    const hasPrice = price_per_night !== undefined
+    const hasMaxGuests = max_guests !== undefined
+
+    if (!hasStatus && !hasPrice && !hasMaxGuests) {
+      return NextResponse.json(
+        { error: 'At least one field (status, price_per_night, or max_guests) is required' },
+        { status: 400 }
+      )
+    }
+
+    let result
+
+    // Handle all combinations
+    if (hasStatus && hasPrice && hasMaxGuests) {
+      result = await sql`
+        UPDATE rooms 
+        SET status = ${status}, price_per_night = ${price_per_night}, max_guests = ${max_guests}
+        WHERE id = ${id}
+        RETURNING *
+      `
+    } else if (hasStatus && hasPrice) {
+      result = await sql`
         UPDATE rooms 
         SET status = ${status}, price_per_night = ${price_per_night}
         WHERE id = ${id}
         RETURNING *
       `
-      if (result.length === 0) {
-        return NextResponse.json({ error: 'Room not found' }, { status: 404 })
-      }
-      return NextResponse.json(result[0])
-    } else if (status !== undefined) {
-      const result = await sql`
+    } else if (hasStatus && hasMaxGuests) {
+      result = await sql`
+        UPDATE rooms 
+        SET status = ${status}, max_guests = ${max_guests}
+        WHERE id = ${id}
+        RETURNING *
+      `
+    } else if (hasPrice && hasMaxGuests) {
+      result = await sql`
+        UPDATE rooms 
+        SET price_per_night = ${price_per_night}, max_guests = ${max_guests}
+        WHERE id = ${id}
+        RETURNING *
+      `
+    } else if (hasStatus) {
+      result = await sql`
         UPDATE rooms 
         SET status = ${status}
         WHERE id = ${id}
         RETURNING *
       `
-      if (result.length === 0) {
-        return NextResponse.json({ error: 'Room not found' }, { status: 404 })
-      }
-      return NextResponse.json(result[0])
-    } else if (price_per_night !== undefined) {
-      const result = await sql`
+    } else if (hasPrice) {
+      result = await sql`
         UPDATE rooms 
         SET price_per_night = ${price_per_night}
         WHERE id = ${id}
         RETURNING *
       `
-      if (result.length === 0) {
-        return NextResponse.json({ error: 'Room not found' }, { status: 404 })
-      }
-      return NextResponse.json(result[0])
-    } else {
-      return NextResponse.json(
-        { error: 'status or price_per_night is required' },
-        { status: 400 }
-      )
+    } else if (hasMaxGuests) {
+      result = await sql`
+        UPDATE rooms 
+        SET max_guests = ${max_guests}
+        WHERE id = ${id}
+        RETURNING *
+      `
     }
+
+    if (result!.length === 0) {
+      return NextResponse.json({ error: 'Room not found' }, { status: 404 })
+    }
+    
+    return NextResponse.json(result![0])
   } catch (error) {
     console.error('Error updating room:', error)
     return NextResponse.json(

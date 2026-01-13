@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getRoomBySlug, roomsData } from '@/lib/rooms-data'
 
 type Room = {
   id: number
@@ -155,6 +156,7 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
             setAdditionalGuests([])
           }
         }
+        // num_guests is already the total (includes base + additional), so no adjustment needed
         // Load service charge
         setServiceChargeEnabled(data.service_charge > 0)
         // Load additional items
@@ -237,6 +239,22 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
       const calculatedPrice = Number(selectedRoom.price_per_night) * nights
       const basePrice = useCustomTotal && customTotal ? parseFloat(customTotal) : calculatedPrice
       
+      // Find room data to get extraGuestCharge
+      const roomData = roomsData.find(r => 
+        r.name === selectedRoom.name || 
+        r.name === selectedRoom.room_number ||
+        selectedRoom.name?.includes(r.name) ||
+        selectedRoom.room_number?.includes(r.name)
+      ) || null
+      
+      // Calculate additional guest charge based on num_guests
+      const baseCapacity = selectedRoom.max_guests
+      const guestsOverCapacity = Math.max(0, formData.num_guests - baseCapacity)
+      const extraGuestChargePerNight = roomData?.extraGuestCharge || 0
+      const additionalGuestCharge = extraGuestChargePerNight > 0 && guestsOverCapacity > 0
+        ? extraGuestChargePerNight * guestsOverCapacity * nights
+        : 0
+      
       // Calculate service charge (15% of base price)
       const serviceChargeAmount = serviceChargeEnabled ? basePrice * 0.15 : 0
       
@@ -244,7 +262,7 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
       const additionalItemsTotal = additionalItems.reduce((sum, item) => sum + (item.amount || 0), 0)
       
       // Calculate final total
-      const finalPrice = basePrice + serviceChargeAmount + additionalItemsTotal
+      const finalPrice = basePrice + serviceChargeAmount + additionalItemsTotal + additionalGuestCharge
 
       // Create or update reservation
       const url = reservationId 
@@ -256,7 +274,7 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
       const reservationData: any = {
         check_in: formData.check_in,
         check_out: formData.check_out,
-        num_guests: formData.num_guests,
+        num_guests: formData.num_guests, // Save total guests (includes base + additional)
         total_price: finalPrice,
         special_requests: formData.special_requests || null,
         source: formData.source,
@@ -295,6 +313,15 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
 
   const selectedRoom = availableRooms.find(r => r.id.toString() === formData.room_id) ||
                       rooms.find(r => r.id.toString() === formData.room_id)
+  
+  // Find room data from rooms-data.ts to get extraGuestCharge info
+  const roomData = selectedRoom ? roomsData.find(r => 
+    r.name === selectedRoom.name || 
+    r.name === selectedRoom.room_number ||
+    selectedRoom.name?.includes(r.name) ||
+    selectedRoom.room_number?.includes(r.name)
+  ) : null
+  
   const nights = formData.check_in && formData.check_out
     ? Math.ceil(
         (new Date(formData.check_out).getTime() - new Date(formData.check_in).getTime()) / 
@@ -303,9 +330,18 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
     : 0
   const basePrice = selectedRoom ? Number(selectedRoom.price_per_night) * nights : 0
   const roomPrice = useCustomTotal && customTotal ? parseFloat(customTotal) : basePrice
+  
+  // Calculate additional guest charge based on num_guests
+  const baseCapacity = selectedRoom ? selectedRoom.max_guests : 0
+  const guestsOverCapacity = Math.max(0, formData.num_guests - baseCapacity)
+  const extraGuestChargePerNight = roomData?.extraGuestCharge || 0
+  const additionalGuestCharge = extraGuestChargePerNight > 0 && guestsOverCapacity > 0
+    ? extraGuestChargePerNight * guestsOverCapacity * nights
+    : 0
+  
   const serviceChargeAmount = serviceChargeEnabled ? roomPrice * 0.15 : 0
   const additionalItemsTotal = additionalItems.reduce((sum, item) => sum + (item.amount || 0), 0)
-  const totalPrice = roomPrice + serviceChargeAmount + additionalItemsTotal
+  const totalPrice = roomPrice + serviceChargeAmount + additionalItemsTotal + additionalGuestCharge
   const paidAmount = amountPaid ? parseFloat(amountPaid) : 0
   const outstandingBalance = totalPrice - paidAmount
 
@@ -391,15 +427,22 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
         <input
           type="number"
           min="1"
-          max={selectedRoom?.max_guests || 4}
+          max={roomData?.extraGuestMax || selectedRoom?.max_guests || 4}
           value={formData.num_guests}
           onChange={(e) => {
             const value = parseInt(e.target.value) || 1
-            setFormData({ ...formData, num_guests: value })
+            const maxGuests = roomData?.extraGuestMax || selectedRoom?.max_guests || 4
+            setFormData({ ...formData, num_guests: Math.min(value, maxGuests) })
           }}
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
         />
+        {roomData && roomData.extraGuestCharge && roomData.extraGuestMax && (
+          <p className="text-xs text-gray-500 mt-1">
+            Base capacity: {selectedRoom?.max_guests || 0} guests. Max: {roomData.extraGuestMax} guests. 
+            Additional guests beyond base capacity: ${roomData.extraGuestCharge}/night each
+          </p>
+        )}
       </div>
 
       <div className="border-t pt-6">
@@ -650,6 +693,26 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
                 )}
               </label>
             </div>
+
+            {/* Additional Guest Charge Display */}
+            {selectedRoom && roomData && roomData.extraGuestCharge && roomData.extraGuestMax && guestsOverCapacity > 0 && (
+              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <span className="font-medium text-purple-800">Additional Guest Charge</span>
+                    <p className="text-xs text-purple-600">
+                      Base capacity: {baseCapacity} guests. {guestsOverCapacity} additional guest{guestsOverCapacity !== 1 ? 's' : ''} at ${roomData.extraGuestCharge}/night each
+                    </p>
+                  </div>
+                  <span className="font-semibold text-purple-700">${additionalGuestCharge.toFixed(2)}</span>
+                </div>
+                {additionalGuestCharge > 0 && (
+                  <div className="text-xs text-purple-600">
+                    {guestsOverCapacity} guest{guestsOverCapacity !== 1 ? 's' : ''} × ${roomData.extraGuestCharge}/night × {nights} night{nights !== 1 ? 's' : ''} = ${additionalGuestCharge.toFixed(2)}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Additional Items */}
             <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
