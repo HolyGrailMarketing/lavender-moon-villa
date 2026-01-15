@@ -170,7 +170,7 @@ export async function PATCH(
     if (status === 'checked_in') {
       await sql`UPDATE rooms SET status = 'occupied' WHERE id = ${result[0].room_id}`
     } else if (status === 'checked_out') {
-      await sql`UPDATE rooms SET status = 'cleaning' WHERE id = ${result[0].room_id}`
+      await sql`UPDATE rooms SET status = 'available' WHERE id = ${result[0].room_id}`
     }
 
     // Send update email if there were changes

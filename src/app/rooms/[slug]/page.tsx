@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { getRoomBySlug, roomsData } from '@/lib/rooms-data'
+import { isBlobStorageUrl } from '@/lib/image-utils'
 
 export default function RoomDetailPage() {
   const params = useParams()
@@ -181,6 +182,7 @@ export default function RoomDetailPage() {
                   sizes="(max-width: 1024px) 100vw, 66vw"
                   priority
                   quality={85}
+                  unoptimized={isBlobStorageUrl(displayImages[selectedImage])}
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-lavender-pale">
@@ -217,6 +219,7 @@ export default function RoomDetailPage() {
                       className="object-cover"
                       sizes="96px"
                       quality={70}
+                      unoptimized={isBlobStorageUrl(img)}
                     />
                   </button>
                 ))}
@@ -403,6 +406,7 @@ export default function RoomDetailPage() {
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                           sizes="(max-width: 768px) 100vw, 33vw"
                           quality={75}
+                          unoptimized={isBlobStorageUrl(imageUrl)}
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center bg-lavender-pale">

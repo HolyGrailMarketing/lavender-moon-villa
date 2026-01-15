@@ -27,28 +27,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Room not found' }, { status: 404 })
     }
 
-    // Check if blob storage is enabled
-    if (!isBlobStorageEnabled()) {
-      return NextResponse.json({
-        room: roomSlug,
-        folder: folderName,
-        images: [],
-        count: 0,
-        storage: 'none',
-        error: 'Blob storage is not configured'
-      })
-    }
-
-    // Get images from Vercel Blob Storage
+    // Get images from database (avoids Vercel Blob list() operations)
     const blobImages = await listAllRoomImages(roomSlug)
 
-    // Transform blob data into our image objects
+    // Transform data into our image objects
     const images = blobImages.map(blob => ({
       url: blob.url,
       filename: blob.filename,
-      size: blob.size,
-      uploadedAt: blob.uploadedAt?.toISOString(),
-      storage: 'blob' as const
+      size: blob.size || null,
+      uploadedAt: blob.uploadedAt instanceof Date 
+        ? blob.uploadedAt.toISOString() 
+        : (blob.uploadedAt as string) || null,
+      storage: isBlobStorageEnabled() ? 'blob' as const : 'database' as const,
+      is_thumbnail: blob.is_thumbnail || false,
+      display_order: blob.display_order || 0
     }))
 
     return NextResponse.json({

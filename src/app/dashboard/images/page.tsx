@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import { isBlobStorageUrl } from '@/lib/image-utils'
 import { roomFolderMap, getMappedRoomSlugs } from '@/lib/room-folder-map'
 
 interface RoomImage {
@@ -398,6 +399,7 @@ export default function ImagesPage() {
                           fill
                           className="object-cover"
                           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                          unoptimized={isBlobStorageUrl(image.url)}
                         />
                         {isThumbnail && (
                           <div className="absolute top-2 left-2 bg-moon-gold text-white px-2 py-1 rounded text-xs font-medium z-10">

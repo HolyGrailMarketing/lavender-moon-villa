@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { isBlobStorageUrl } from '@/lib/image-utils'
 
 interface HomeRoomCardProps {
   slug: string
@@ -55,6 +56,7 @@ export default function HomeRoomCard({ slug, name, desc, price, features, type, 
           sizes={type === 'suite' ? "(max-width: 768px) 100vw, 33vw" : "(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 25vw"}
           quality={70}
           loading="lazy"
+          unoptimized={isBlobStorageUrl(imageUrl)}
         />
       ) : (
         <div className="absolute inset-0 bg-lavender-pale flex items-center justify-center">

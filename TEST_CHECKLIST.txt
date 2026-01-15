@@ -1,0 +1,280 @@
+# 🌙 Lavender Moon Villas - End User Test Checklist
+
+## Overview
+This comprehensive test checklist covers all features of the Lavender Moon Villa booking system. Test both guest-facing features and admin dashboard functionality.
+
+**Test Environment:
+**Test Date:** [Date]
+**Tester:** [Name]
+
+---
+
+## 🎯 GUEST USER TESTING
+
+### 1. HOMEPAGE/LANDING PAGE
+- [ ] Homepage loads correctly and displays hero slideshow
+- [ ] Property description and amenities are visible
+- [ ] Navigation menu works (Rooms, Book Now, My Reservation, Privacy)
+- [ ] Contact information is displayed and accurate
+- [ ] Social media links (if any) work correctly
+- [ ] Cookie consent banner appears and functions
+- [ ] Responsive design works on mobile/tablet/desktop
+- [ ] Loading performance is acceptable (< 3 seconds)
+
+### 2. ROOM BROWSING & DISCOVERY
+- [ ] Rooms page displays all available rooms
+- [ ] Room thumbnails display correctly
+- [ ] Room descriptions and amenities are complete
+- [ ] Room capacity information is accurate
+- [ ] Price per night is clearly displayed
+- [ ] "Book Now" buttons work and redirect to booking flow
+- [ ] Individual room pages load with full details
+- [ ] Image galleries work (next/previous navigation)
+- [ ] "You May Also Like" section shows other rooms
+- [ ] Back to rooms listing works correctly
+
+### 3. BOOKING FLOW - STEP 1: DATE SELECTION
+- [ ] Date picker displays correctly
+- [ ] Minimum stay requirements are enforced
+- [ ] Check-in date restrictions work (no past dates)
+- [ ] Check-out date must be after check-in
+- [ ] Calendar shows availability accurately
+- [ ] "Continue" button enabled only when dates selected
+- [ ] Error messages display for invalid date selections
+
+### 4. BOOKING FLOW - STEP 2: ROOM SELECTION
+- [ ] Available rooms display based on selected dates
+- [ ] Room capacity matches guest count (if specified)
+- [ ] Room prices calculate correctly
+- [ ] Room availability status is accurate
+- [ ] Selecting a room proceeds to next step
+- [ ] Room selection persists across steps
+- [ ] Back button returns to date selection
+
+### 5. BOOKING FLOW - STEP 3: GUEST DETAILS
+- [ ] All required fields are marked (*)
+- [ ] Form validation works for required fields
+- [ ] Email format validation works
+- [ ] Phone number validation works
+- [ ] Guest count selection affects room availability
+- [ ] Additional guest charges display when exceeding base capacity
+- [ ] Special requests field accepts long text
+- [ ] Privacy policy agreement checkbox works
+- [ ] Form data persists if navigating back/forward
+
+### 6. BOOKING FLOW - STEP 4: CONFIRMATION
+- [ ] Booking summary displays all entered information
+- [ ] Dates, room selection, and pricing are correct
+- [ ] Guest information is accurately displayed
+- [ ] Total price calculation includes additional guest charges
+- [ ] Terms and conditions link works
+- [ ] "Confirm Booking" proceeds to payment
+- [ ] Back button allows editing previous steps
+
+### 7. PAYMENT PROCESSING - DIMEPAY
+- [ ] DimePay payment option is available
+- [ ] Payment amount displays correctly
+- [ ] Payment initiation redirects to DimePay
+- [ ] Return from payment shows success/failure
+- [ ] Successful payment creates reservation
+- [ ] Failed payment allows retry or cancellation
+- [ ] Payment reference is stored correctly
+
+
+### 9. BOOKING CONFIRMATION & EMAIL NOTIFICATIONS
+- [ ] Booking confirmation page displays reservation details
+- [ ] Reservation ID is generated and displayed
+- [ ] Reservation ID format is correct (LMV-XXXXXX)
+- [ ] Print-friendly invoice link works
+- [ ] Email confirmation is sent to guest
+- [ ] Email contains all booking details
+- [ ] Email formatting is professional and readable
+- [ ] Reservation appears in admin dashboard
+
+### 10. CHECK-IN FORM
+- [ ] Check-in form accessible via reservation ID
+- [ ] Guest information pre-populates correctly
+- [ ] ID verification fields work (type and number)
+- [ ] Emergency contact information collects
+- [ ] Vehicle information (optional) works
+- [ ] Check-in agreement acceptance works
+- [ ] Form submission updates reservation status
+- [ ] Success page displays next steps
+- [ ] Email notification sent after check-in
+
+### 11. MY RESERVATION LOOKUP
+- [ ] Reservation lookup page loads correctly
+- [ ] Search by reservation ID works
+- [ ] Search by email works
+- [ ] Reservation details display accurately
+- [ ] Current status shows correctly
+- [ ] Check-in/check-out dates are correct
+- [ ] Room information is accurate
+- [ ] Invoice link works
+- [ ] Error handling for invalid reservation IDs
+
+### 12. INVOICE VIEWING
+- [ ] Invoice page loads correctly
+- [ ] All reservation details are displayed
+- [ ] Pricing breakdown is accurate
+- [ ] Additional guest charges show correctly
+- [ ] Payment information displays
+- [ ] Print functionality works
+- [ ] PDF download works (if available)
+- [ ] Invoice formatting is professional
+
+### 13. PRIVACY & DATA RIGHTS
+- [ ] Privacy policy page loads correctly
+- [ ] Data access request form works
+- [ ] Data correction request form works
+- [ ] GDPR compliance information is available
+- [ ] Contact information for data requests is provided
+- [ ] Form submissions are processed correctly
+
+---
+
+## 👨‍💼 ADMIN USER TESTING
+
+### 14. LOGIN & AUTHENTICATION
+- [ ] Login page loads correctly
+- [ ] Default credentials work (admin@lavendermoonvilla.com / admin123)
+- [ ] Invalid credentials show error message
+- [ ] Password change functionality works
+- [ ] Session persists across page refreshes
+- [ ] Logout functionality works correctly
+- [ ] Session expires appropriately
+
+### 15. DASHBOARD OVERVIEW TAB
+- [ ] Today's arrivals display correctly
+- [ ] Today's departures display correctly
+- [ ] Room occupancy counts are accurate
+- [ ] Available room counts are accurate
+- [ ] Quick check-in/check-out buttons work
+- [ ] Statistics update in real-time
+- [ ] Mobile responsiveness works
+
+### 16. RESERVATIONS MANAGEMENT
+- [ ] All reservations display in table format
+- [ ] Sorting and filtering work correctly
+- [ ] Reservation details are complete and accurate
+- [ ] Status indicators display correctly
+- [ ] Edit reservation functionality works
+- [ ] New reservation creation works
+- [ ] Actions dropdown functions properly
+- [ ] Quick check-in/check-out work from table
+
+### 17. RESERVATION STATUS CHANGES
+- [ ] Change status modal opens correctly
+- [ ] Status dropdown shows all valid options
+- [ ] Status updates save correctly
+- [ ] Room status updates automatically on check-in/out
+- [ ] Cancellation requires reason and notes
+- [ ] Status changes reflect immediately in UI
+- [ ] Email notifications sent for status changes
+
+### 18. CALENDAR VIEW
+- [ ] Calendar displays current month correctly
+- [ ] Navigation between months works
+- [ ] Booked dates show reservations
+- [ ] Room availability is visually clear
+- [ ] Clicking dates shows reservation details
+- [ ] Color coding for different reservation statuses
+- [ ] Mobile calendar view works
+
+### 19. ROOM MANAGEMENT
+- [ ] All rooms display with current status
+- [ ] Room status updates work (available/occupied/cleaning/maintenance)
+- [ ] Price editing functionality works
+- [ ] Price changes save correctly
+- [ ] Status changes reflect in availability
+- [ ] Room information is editable
+- [ ] Status indicators are visually clear
+
+### 20. IMAGE MANAGEMENT
+- [ ] Image upload functionality works
+- [ ] Thumbnail selection works
+- [ ] Image deletion works
+- [ ] Image organization by room works
+- [ ] Thumbnail updates reflect on room pages
+- [ ] Image optimization works correctly
+- [ ] Error handling for invalid file types
+
+### 21. CHECK IN/OUT OPERATIONS
+- [ ] Pending check-ins tab shows all relevant reservations
+- [ ] Past-due check-ins are highlighted in red
+- [ ] Pending check-outs show checked-in guests
+- [ ] Quick check-in buttons work correctly
+- [ ] Quick check-out buttons work correctly
+- [ ] Room status updates on check-in/out
+- [ ] Check-in/check-out timestamps record correctly
+- [ ] Email notifications sent appropriately
+
+---
+
+## 🔄 CROSS-FEATURE TESTING
+
+### 22. MOBILE RESPONSIVENESS
+- [ ] Homepage works on mobile (320px+)
+- [ ] Booking flow works on mobile
+- [ ] Admin dashboard works on mobile
+- [ ] Touch interactions work correctly
+- [ ] Forms are mobile-friendly
+- [ ] Calendar picker works on mobile
+- [ ] Tables scroll horizontally on mobile
+
+### 23. ERROR HANDLING
+- [ ] Network errors display user-friendly messages
+- [ ] Invalid form submissions show validation errors
+- [ ] Payment failures handled gracefully
+- [ ] Database connection issues show appropriate messages
+- [ ] File upload errors handled correctly
+- [ ] 404 pages work for invalid URLs
+- [ ] 500 errors show generic error pages
+
+### 24. DATA VALIDATION
+- [ ] All required fields are validated
+- [ ] Email format validation works
+- [ ] Phone number format validation works
+- [ ] Date validations prevent invalid bookings
+- [ ] Payment amount validations work
+- [ ] File size limits enforced for uploads
+- [ ] SQL injection prevention works
+
+### 25. PERFORMANCE TESTING
+- [ ] Page load times < 3 seconds
+- [ ] Image loading is optimized
+- [ ] Database queries are efficient
+- [ ] Large data sets load without issues
+- [ ] Search functionality is fast
+- [ ] File uploads complete within reasonable time
+
+### 26. SECURITY TESTING
+- [ ] Admin authentication required for dashboard
+- [ ] Session management works correctly
+- [ ] Input sanitization prevents XSS
+- [ ] API endpoints require authentication where needed
+- [ ] File upload security (type/size restrictions)
+- [ ] Password policies enforced
+
+---
+
+## 📋 TESTING SUMMARY
+
+### Test Results Summary
+- **Total Tests:** [Count]
+- **Passed:** [Count]
+- **Failed:** [Count]
+- **Not Tested:** [Count]
+
+### Critical Issues Found
+[List any critical issues that prevent core functionality]
+
+### Minor Issues Found
+[List any minor issues or improvements needed]
+
+### Recommendations
+[Any recommendations for improvements or additional features]
+
+### Sign-off
+**Tested By:
+**Date:

@@ -67,6 +67,18 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `
 
+    // Also update room_images table to mark this image as thumbnail
+    try {
+      await sql`
+        UPDATE room_images 
+        SET is_thumbnail = (image_url = ${thumbnailUrl})
+        WHERE room_slug = ${roomSlug}
+      `
+    } catch (error) {
+      console.warn('Error updating room_images thumbnail flag:', error)
+      // Continue even if this fails - thumbnail is still set in room_thumbnails table
+    }
+
     return NextResponse.json({
       success: true,
       thumbnail: result[0]

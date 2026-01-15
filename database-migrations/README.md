@@ -77,3 +77,48 @@ psql $DATABASE_URL -f database-migrations/add-guest-name-to-reservations.sql
 
 ### Verification
 After running the migration, the script will verify the columns were added by querying the table schema.
+
+---
+
+## Add Room Images Table
+
+### Problem
+Vercel Blob Storage `list()` operations count as Advanced Operations and have usage limits. The Hobby plan has a limit of 2K Advanced Operations per month, which was being exceeded by frequent image listing operations.
+
+### Solution
+Store image URLs in a PostgreSQL database table instead of using `list()` operations. This eliminates Advanced Operations usage while keeping images stored in Vercel Blob Storage (or public folder) for actual file storage.
+
+### How to Run
+
+#### Option 1: Using Neon Console
+1. Go to your Neon project dashboard
+2. Navigate to the SQL Editor
+3. Copy and paste the contents of `add-room-images-table.sql`
+4. Execute the SQL
+
+#### Option 2: Using psql
+```bash
+psql $DATABASE_URL -f database-migrations/add-room-images-table.sql
+```
+
+### What the Migration Does
+1. Creates `room_images` table to store image URLs, filenames, and metadata
+2. Creates indexes for fast lookups by `room_slug` and thumbnail queries
+3. Creates unique constraint to prevent duplicate URLs for the same room
+4. Verifies the table was created correctly
+
+### After Migration
+- Image URLs are stored in the database instead of using `list()` operations
+- Images are still stored in Vercel Blob Storage (or public folder) for actual file storage
+- Database queries replace Vercel Blob `list()` calls, eliminating Advanced Operations usage
+- Existing images in blob storage will be automatically migrated to the database on first access
+- New uploads automatically save URLs to the database
+
+### Benefits
+- **No Advanced Operations**: Database queries don't count toward Vercel Blob limits
+- **Faster**: Database queries are faster than blob storage listing
+- **Cost-effective**: Works within Neon Free plan limits (minimal storage for URLs)
+- **Scalable**: Can handle thousands of images without hitting operation limits
+
+### Verification
+After running the migration, the script will verify the table was created by querying the table schema.

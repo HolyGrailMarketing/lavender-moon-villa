@@ -19,19 +19,15 @@ export async function DELETE(request: NextRequest) {
       }, { status: 400 })
     }
 
-    let deleteUrl = url
+    // Use URL if provided, otherwise construct from roomSlug and filename
+    const deleteUrl = url || (roomSlug && filename ? `rooms/${roomSlug}/${filename}` : null)
 
-    // If we have roomSlug and filename instead of full URL, construct the blob URL
-    if (!deleteUrl && roomSlug && filename) {
-      deleteUrl = `https://blob.vercel-storage.com/rooms/${roomSlug}/${filename}`
-    }
-
-    if (!deleteUrl) {
+    if (!deleteUrl || !roomSlug) {
       return NextResponse.json({ error: 'Invalid image URL or parameters' }, { status: 400 })
     }
 
-    // Delete the image
-    await deleteRoomImage(roomSlug || 'unknown', filename || 'unknown')
+    // Delete the image (from both database and blob storage)
+    await deleteRoomImage(roomSlug, deleteUrl)
 
     return NextResponse.json({
       success: true,

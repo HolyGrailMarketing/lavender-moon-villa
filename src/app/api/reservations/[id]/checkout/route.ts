@@ -26,10 +26,10 @@ export async function POST(
       return NextResponse.json({ error: 'Reservation not found' }, { status: 404 })
     }
 
-    // Update room status to cleaning
+    // Update room status to available
     await sql`
-      UPDATE rooms 
-      SET status = 'cleaning' 
+      UPDATE rooms
+      SET status = 'available'
       WHERE id = ${result[0].room_id}
     `
 

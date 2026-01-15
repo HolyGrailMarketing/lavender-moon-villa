@@ -46,6 +46,10 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
   const [cancellationReason, setCancellationReason] = useState('')
   const [cancellationNotes, setCancellationNotes] = useState('')
   const [openActionMenu, setOpenActionMenu] = useState<number | null>(null)
+  const [changingStatusReservation, setChangingStatusReservation] = useState<Reservation | null>(null)
+  const [newStatus, setNewStatus] = useState<string>('')
+  const [statusChangeCancellationReason, setStatusChangeCancellationReason] = useState('')
+  const [statusChangeCancellationNotes, setStatusChangeCancellationNotes] = useState('')
 
   useEffect(() => {
     fetchData()
@@ -164,18 +168,51 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
 
   const todayArrivals = reservations.filter(r => {
     const checkInDate = normalizeDate(r.check_in)
+    // Show reservations with today's check-in date that are confirmed (paid) but not yet checked in
     const matches = checkInDate === today && (r.status === 'deposit_paid' || r.status === 'paid_in_full' || r.status === 'pending')
     return matches
   })
 
   const todayDepartures = reservations.filter(r => {
     const checkOutDate = normalizeDate(r.check_out)
-    const matches = checkOutDate === today && (r.status === 'checked_in' || r.status === 'deposit_paid' || r.status === 'paid_in_full')
+    // Show checked-in guests departing today
+    const matches = checkOutDate === today && r.status === 'checked_in'
     return matches
   })
 
   const occupiedRooms = rooms.filter(r => r.status === 'occupied').length
   const availableRooms = rooms.filter(r => r.status === 'available').length
+
+  // Pending check-ins and check-outs for the Check In/Out tab
+  // Include all confirmed reservations that haven't checked in yet, including past-due ones
+  const pendingCheckIns = reservations.filter(r => {
+    // Exclude already checked in, checked out, or cancelled
+    if (['checked_in', 'checked_out', 'cancelled'].includes(r.status)) {
+      return false
+    }
+    
+    const checkInDate = normalizeDate(r.check_in)
+    const isPastDue = checkInDate < today // Check-in date has passed
+    const isConfirmed = ['deposit_paid', 'paid_in_full', 'pending'].includes(r.status)
+    
+    // Show confirmed reservations OR past-due reservations (regardless of status)
+    return isConfirmed || isPastDue
+  }).sort((a, b) => {
+    // Sort past-due check-ins first
+    const aDate = normalizeDate(a.check_in)
+    const bDate = normalizeDate(b.check_in)
+    const aPastDue = aDate < today
+    const bPastDue = bDate < today
+
+    if (aPastDue && !bPastDue) return -1
+    if (!aPastDue && bPastDue) return 1
+    return new Date(a.check_in).getTime() - new Date(b.check_in).getTime()
+  })
+
+  const pendingCheckOuts = reservations.filter(r =>
+    r.status === 'checked_in'
+  )
+
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -333,14 +370,125 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
     }
   }
 
+  function openChangeStatusModal(reservation: Reservation) {
+    setChangingStatusReservation(reservation)
+    setNewStatus(reservation.status)
+    setOpenActionMenu(null)
+  }
+
+  function closeChangeStatusModal() {
+    setChangingStatusReservation(null)
+    setNewStatus('')
+    setStatusChangeCancellationReason('')
+    setStatusChangeCancellationNotes('')
+  }
+
+  async function handleStatusChange() {
+    if (!changingStatusReservation || !newStatus) return
+
+    // If changing to cancelled, require cancellation reason and use DELETE endpoint
+    if (newStatus === 'cancelled') {
+      if (!statusChangeCancellationReason) {
+        alert('Please select a cancellation reason')
+        return
+      }
+
+      try {
+        const res = await fetch(`/api/reservations/${changingStatusReservation.id}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cancellation_reason: statusChangeCancellationReason,
+            cancellation_notes: statusChangeCancellationNotes || null,
+          }),
+        })
+
+        if (res.ok) {
+          await fetchData()
+          closeChangeStatusModal()
+          alert('Reservation cancelled successfully')
+        } else {
+          const error = await res.json()
+          alert(error.error || 'Failed to cancel reservation')
+        }
+      } catch (error) {
+        console.error('Error cancelling reservation:', error)
+        alert('Error cancelling reservation')
+      }
+    } else {
+      // For other status changes, use PATCH endpoint
+      try {
+        const res = await fetch(`/api/reservations/${changingStatusReservation.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus }),
+        })
+
+        if (res.ok) {
+          await fetchData()
+          closeChangeStatusModal()
+          alert('Reservation status updated successfully')
+        } else {
+          const error = await res.json()
+          alert(error.error || 'Failed to update status')
+        }
+      } catch (error) {
+        console.error('Error updating status:', error)
+        alert('Error updating status')
+      }
+    }
+  }
+
+  async function handleQuickCheckIn(reservationId: number) {
+    if (confirm('Are you sure you want to check in this guest?')) {
+      try {
+        const res = await fetch(`/api/reservations/${reservationId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'checked_in' }),
+        })
+
+        if (res.ok) {
+          await fetchData()
+          alert('Guest checked in successfully')
+        } else {
+          const error = await res.json()
+          alert(error.error || 'Failed to check in guest')
+        }
+      } catch (error) {
+        console.error('Error checking in guest:', error)
+        alert('Error checking in guest')
+      }
+    }
+  }
+
+  async function handleQuickCheckOut(reservationId: number) {
+    if (confirm('Are you sure you want to check out this guest?')) {
+      try {
+        const res = await fetch(`/api/reservations/${reservationId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'checked_out' }),
+        })
+
+        if (res.ok) {
+          await fetchData()
+          alert('Guest checked out successfully')
+        } else {
+          const error = await res.json()
+          alert(error.error || 'Failed to check out guest')
+        }
+      } catch (error) {
+        console.error('Error checking out guest:', error)
+        alert('Error checking out guest')
+      }
+    }
+  }
+
   function viewInvoice(reservation: Reservation) {
     // Open invoice page in a new tab
     window.open(`/invoice/${reservation.id}`, '_blank')
   }
-
-  // Use the same logic as todayArrivals/todayDepartures to avoid duplication
-  const pendingCheckIns = todayArrivals
-  const pendingCheckOuts = todayDepartures
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -623,74 +771,70 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                       </svg>
                                     </button>
-                                    
-                                    {openActionMenu === r.id && (
-                                      <>
-                                        {/* Backdrop to close menu when clicking outside */}
-                                        <div 
-                                          className="fixed inset-0 z-10" 
-                                          onClick={() => setOpenActionMenu(null)}
-                                        />
-                                        
-                                        {/* Dropdown menu */}
-                                        <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                                          {(r.status === 'deposit_paid' || r.status === 'paid_in_full') && (
-                                            <button
-                                              onClick={() => { handleCheckIn(r.id); setOpenActionMenu(null); }}
-                                              className="w-full px-4 py-2 text-left text-sm text-green-700 hover:bg-green-50 flex items-center gap-2"
-                                            >
-                                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                              </svg>
-                                              Check In
-                                            </button>
-                                          )}
-                                          {r.status === 'checked_in' && (
-                                            <button
-                                              onClick={() => { handleCheckOut(r.id); setOpenActionMenu(null); }}
-                                              className="w-full px-4 py-2 text-left text-sm text-orange-700 hover:bg-orange-50 flex items-center gap-2"
-                                            >
-                                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                              </svg>
-                                              Check Out
-                                            </button>
-                                          )}
+                                  
+                                  {openActionMenu === r.id && (
+                                    <>
+                                      {/* Backdrop to close menu when clicking outside */}
+                                      <div 
+                                        className="fixed inset-0 z-10" 
+                                        onClick={() => setOpenActionMenu(null)}
+                                      />
+                                      
+                                      {/* Dropdown menu */}
+                                      <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                                        {(r.status === 'deposit_paid' || r.status === 'paid_in_full' || r.status === 'pending') && (
                                           <button
-                                            onClick={() => { viewInvoice(r); setOpenActionMenu(null); }}
-                                            className="w-full px-4 py-2 text-left text-sm text-purple-700 hover:bg-purple-50 flex items-center gap-2"
+                                            onClick={() => { handleCheckIn(r.id); setOpenActionMenu(null); }}
+                                            className="w-full px-4 py-2 text-left text-sm text-green-700 hover:bg-green-50 flex items-center gap-2"
                                           >
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
-                                            View Invoice
+                                            Check In
                                           </button>
+                                        )}
+                                        {r.status === 'checked_in' && (
                                           <button
-                                            onClick={() => { window.open(`/check-in-form/${r.id}`, '_blank'); setOpenActionMenu(null); }}
-                                            className="w-full px-4 py-2 text-left text-sm text-blue-700 hover:bg-blue-50 flex items-center gap-2"
+                                            onClick={() => { handleCheckOut(r.id); setOpenActionMenu(null); }}
+                                            className="w-full px-4 py-2 text-left text-sm text-orange-700 hover:bg-orange-50 flex items-center gap-2"
                                           >
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                             </svg>
-                                            Print Form
+                                            Check Out
                                           </button>
-                                          {r.status !== 'cancelled' && r.status !== 'checked_out' && (
-                                            <>
-                                              <div className="border-t border-gray-100 my-1"></div>
-                                              <button
-                                                onClick={() => { openCancelModal(r); setOpenActionMenu(null); }}
-                                                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                              >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                                Cancel Reservation
-                                              </button>
-                                            </>
-                                          )}
-                                        </div>
-                                      </>
-                                    )}
+                                        )}
+                                        <button
+                                          onClick={() => { viewInvoice(r); setOpenActionMenu(null); }}
+                                          className="w-full px-4 py-2 text-left text-sm text-purple-700 hover:bg-purple-50 flex items-center gap-2"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                          </svg>
+                                          View Invoice
+                                        </button>
+                                        <button
+                                          onClick={() => { window.open(`/check-in-form/${r.id}`, '_blank'); setOpenActionMenu(null); }}
+                                          className="w-full px-4 py-2 text-left text-sm text-blue-700 hover:bg-blue-50 flex items-center gap-2"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                          </svg>
+                                          Print Form
+                                        </button>
+                                        <div className="border-t border-gray-100 my-1"></div>
+                                        <button
+                                          onClick={() => { openChangeStatusModal(r); }}
+                                          className="w-full px-4 py-2 text-left text-sm text-lavender-deep hover:bg-lavender-pale flex items-center gap-2"
+                                        >
+                                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                          </svg>
+                                          Change Status
+                                        </button>
+                                      </div>
+                                    </>
+                                  )}
                                   </div>
                                 </td>
                               </tr>
@@ -858,10 +1002,14 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                 </div>
               )}
 
+              {activeTab === 'images' && (
+                <ImagesPage />
+              )}
+
               {activeTab === 'checkin' && (
                 <div>
                   <h2 className="text-xl md:text-2xl font-serif text-lavender-deep mb-4 md:mb-6">Check In / Check Out</h2>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="bg-white p-6 rounded-xl shadow-sm border">
                       <h3 className="font-semibold text-gray-800 mb-4">Pending Check-Ins</h3>
@@ -869,31 +1017,36 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                         <p className="text-gray-500 text-sm">No pending check-ins</p>
                       ) : (
                         <ul className="space-y-3">
-                          {pendingCheckIns.map(r => (
-                            <li key={r.id} className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                              <div className="flex justify-between items-start mb-2">
-                                <div>
-                                  <p className="font-medium text-gray-900">{r.guest_name}</p>
-                                  <p className="text-sm text-gray-600">{r.room_number} - {r.room_name}</p>
-                                  <p className="text-xs text-gray-500 mt-1">Check-in: {new Date(r.check_in).toLocaleDateString()}</p>
+                          {pendingCheckIns.map(r => {
+                            const checkInDate = normalizeDate(r.check_in)
+                            const isPastDue = checkInDate < today
+                            return (
+                              <li key={r.id} className={`p-4 rounded-lg border ${isPastDue ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'}`}>
+                                <div className="flex justify-between items-start mb-2">
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-medium text-gray-900">{r.guest_name}</p>
+                                      {isPastDue && (
+                                        <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full font-medium">
+                                          Past Due
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-sm text-gray-600">{r.room_number} - {r.room_name}</p>
+                                    <p className={`text-xs mt-1 ${isPastDue ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
+                                      Check-in: {new Date(r.check_in).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() => handleQuickCheckIn(r.id)}
+                                    className="px-3 py-1 bg-lavender-deep text-white text-sm rounded hover:bg-lavender-medium transition-colors"
+                                  >
+                                    Check In
+                                  </button>
                                 </div>
-                              </div>
-                              <div className="flex gap-2 mt-3">
-                                <button
-                                  onClick={() => handleCheckIn(r.id)}
-                                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
-                                >
-                                  Check In
-                                </button>
-                                <button
-                                  onClick={() => viewInvoice(r)}
-                                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
-                                >
-                                  Invoice
-                                </button>
-                              </div>
-                            </li>
-                          ))}
+                              </li>
+                            )
+                          })}
                         </ul>
                       )}
                     </div>
@@ -905,26 +1058,18 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                       ) : (
                         <ul className="space-y-3">
                           {pendingCheckOuts.map(r => (
-                            <li key={r.id} className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                            <li key={r.id} className="p-4 bg-green-50 rounded-lg border border-green-200">
                               <div className="flex justify-between items-start mb-2">
                                 <div>
                                   <p className="font-medium text-gray-900">{r.guest_name}</p>
                                   <p className="text-sm text-gray-600">{r.room_number} - {r.room_name}</p>
                                   <p className="text-xs text-gray-500 mt-1">Check-out: {new Date(r.check_out).toLocaleDateString()}</p>
                                 </div>
-                              </div>
-                              <div className="flex gap-2 mt-3">
                                 <button
-                                  onClick={() => handleCheckOut(r.id)}
-                                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm"
+                                  onClick={() => handleQuickCheckOut(r.id)}
+                                  className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
                                 >
                                   Check Out
-                                </button>
-                                <button
-                                  onClick={() => viewInvoice(r)}
-                                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
-                                >
-                                  Invoice
                                 </button>
                               </div>
                             </li>
@@ -934,10 +1079,6 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                     </div>
                   </div>
                 </div>
-              )}
-
-              {activeTab === 'images' && (
-                <ImagesPage />
               )}
             </>
           )}
@@ -965,6 +1106,132 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                 onSuccess={handleReservationSuccess}
                 onCancel={closeModal}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change Status Modal */}
+      {changingStatusReservation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full">
+            <div className="border-b px-6 py-4 flex justify-between items-center">
+              <h2 className="text-2xl font-serif text-lavender-deep">Change Reservation Status</h2>
+              <button
+                onClick={closeChangeStatusModal}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-lavender-pale border border-lavender-medium rounded-lg p-4">
+                <p className="font-medium text-lavender-deep mb-1">Reservation Details</p>
+                <p className="text-sm text-gray-700">
+                  <strong>Guest:</strong> {changingStatusReservation.guest_name}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <strong>Room:</strong> {changingStatusReservation.room_name}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <strong>Check-in:</strong> {formatDateForDisplay(changingStatusReservation.check_in)}
+                </p>
+                <p className="text-sm text-gray-700">
+                  <strong>Check-out:</strong> {formatDateForDisplay(changingStatusReservation.check_out)}
+                </p>
+                <p className="text-sm text-gray-700 mt-2">
+                  <strong>Current Status:</strong>{' '}
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    changingStatusReservation.status === 'deposit_paid' ? 'bg-yellow-100 text-yellow-700' :
+                    changingStatusReservation.status === 'paid_in_full' ? 'bg-green-100 text-green-700' :
+                    changingStatusReservation.status === 'checked_in' ? 'bg-blue-100 text-blue-700' :
+                    changingStatusReservation.status === 'checked_out' ? 'bg-gray-100 text-gray-700' :
+                    changingStatusReservation.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>
+                    {changingStatusReservation.status === 'deposit_paid' ? 'Deposit Paid' :
+                     changingStatusReservation.status === 'paid_in_full' ? 'Paid in Full' :
+                     changingStatusReservation.status === 'checked_in' ? 'Checked In' :
+                     changingStatusReservation.status === 'checked_out' ? 'Checked Out' :
+                     changingStatusReservation.status === 'cancelled' ? 'Cancelled' :
+                     'Pending'}
+                  </span>
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  New Status <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                  required
+                >
+                  <option value="pending">Pending</option>
+                  <option value="deposit_paid">Deposit Paid</option>
+                  <option value="paid_in_full">Paid in Full</option>
+                  <option value="checked_in">Checked In</option>
+                  <option value="checked_out">Checked Out</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              {newStatus === 'cancelled' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Cancellation Reason <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={statusChangeCancellationReason}
+                      onChange={(e) => setStatusChangeCancellationReason(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                      required
+                    >
+                      <option value="">Select a reason</option>
+                      <option value="Refund Applied">Refund Applied</option>
+                      <option value="Non-Refundable">Non-Refundable</option>
+                      <option value="Partial Refund Issued">Partial Refund Issued</option>
+                      <option value="No Payment Received">No Payment Received</option>
+                      <option value="Guest No-Show">Guest No-Show</option>
+                      <option value="Guest Request">Guest Request</option>
+                      <option value="Hotel Cancellation">Hotel Cancellation</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Additional Notes (Optional)
+                    </label>
+                    <textarea
+                      value={statusChangeCancellationNotes}
+                      onChange={(e) => setStatusChangeCancellationNotes(e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lavender-medium focus:border-transparent"
+                      placeholder="Add any additional notes about the cancellation..."
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleStatusChange}
+                  disabled={!newStatus || newStatus === changingStatusReservation.status || (newStatus === 'cancelled' && !statusChangeCancellationReason)}
+                  className="flex-1 px-4 py-2 bg-lavender-deep text-white rounded-lg hover:bg-lavender-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {newStatus === 'cancelled' ? 'Cancel Reservation' : 'Update Status'}
+                </button>
+                <button
+                  onClick={closeChangeStatusModal}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
