@@ -49,7 +49,7 @@ export default function HomeRoomCard({ slug, name, desc, price, features, type, 
         </div>
       ) : imageUrl ? (
         <Image 
-          src={imageUrl} 
+          src={imageUrl}
           alt={name} 
           fill 
           className="object-cover group-hover:scale-105 transition-transform duration-700" 

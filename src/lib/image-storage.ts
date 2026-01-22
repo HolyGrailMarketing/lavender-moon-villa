@@ -129,16 +129,21 @@ export async function listRoomImages(roomSlug: string): Promise<string[]> {
   // Try database first (no Advanced Operations)
   try {
     const dbImages = await sql`
-      SELECT image_url 
+      SELECT DISTINCT ON (image_url) image_url 
       FROM room_images 
       WHERE room_slug = ${roomSlug}
-      ORDER BY display_order ASC, created_at ASC
+      ORDER BY image_url, display_order ASC, created_at ASC
     `
 
     if (dbImages.length > 0) {
       let images = dbImages.map(row => row.image_url as string)
       
+      // Remove any duplicates (just in case)
+      const uniqueImages = new Set(images)
+      images = Array.from(uniqueImages)
+      
       // If blob storage is disabled, convert blob URLs to public folder paths
+      // This is necessary because blob URLs may not be publicly accessible
       if (!isBlobStorageEnabled()) {
         images = images.map(url => {
           if (isBlobStorageUrl(url)) {
@@ -148,6 +153,11 @@ export async function listRoomImages(roomSlug: string): Promise<string[]> {
         })
       }
       
+      console.log(`[listRoomImages] ${roomSlug}: Found ${images.length} images in database`)
+      if (images.length > 0) {
+        console.log(`[listRoomImages] ${roomSlug}: First image: ${images[0]}`)
+      }
+      
       // Cache the result
       imageCache.set(cacheKey, {
         images,
@@ -155,6 +165,8 @@ export async function listRoomImages(roomSlug: string): Promise<string[]> {
       })
 
       return images
+    } else {
+      console.log(`[listRoomImages] ${roomSlug}: No images found in database`)
     }
   } catch (error) {
     console.warn('Error querying room images from database:', error)
@@ -274,7 +286,7 @@ export async function listAllRoomImages(roomSlug: string) {
   // Query database (no Advanced Operations)
   try {
     const dbImages = await sql`
-      SELECT 
+      SELECT DISTINCT ON (image_url)
         id,
         image_url as url,
         filename,
@@ -283,11 +295,11 @@ export async function listAllRoomImages(roomSlug: string) {
         created_at as uploadedAt
       FROM room_images 
       WHERE room_slug = ${roomSlug}
-      ORDER BY display_order ASC, created_at ASC
+      ORDER BY image_url, display_order ASC, created_at ASC
     `
 
     if (dbImages.length > 0) {
-      const images = dbImages.map(row => ({
+      let images = dbImages.map(row => ({
         url: row.url as string,
         pathname: (row.url as string).split('/').slice(-2).join('/'),
         filename: row.filename as string,
@@ -296,6 +308,32 @@ export async function listAllRoomImages(roomSlug: string) {
         is_thumbnail: row.is_thumbnail as boolean,
         display_order: row.display_order as number
       }))
+
+      // Remove duplicates by URL (just in case DISTINCT ON didn't work as expected)
+      const seenUrls = new Set<string>()
+      images = images.filter(img => {
+        if (seenUrls.has(img.url)) {
+          return false
+        }
+        seenUrls.add(img.url)
+        return true
+      })
+
+      // If blob storage is disabled, convert blob URLs to public folder paths
+      // This is necessary because blob URLs may return 403 errors
+      if (!isBlobStorageEnabled()) {
+        images = images.map(img => {
+          if (isBlobStorageUrl(img.url)) {
+            const convertedUrl = convertBlobUrlToPublicPath(img.url, roomSlug)
+            return {
+              ...img,
+              url: convertedUrl,
+              pathname: convertedUrl.split('/').slice(-2).join('/')
+            }
+          }
+          return img
+        })
+      }
 
       // Cache the result
       imageCache.set(cacheKey, {

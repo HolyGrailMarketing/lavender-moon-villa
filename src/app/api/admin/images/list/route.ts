@@ -1,9 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
-import { listAllRoomImages, isBlobStorageEnabled } from '@/lib/image-storage'
+import { listAllRoomImages, isBlobStorageEnabled, isBlobStorageUrl } from '@/lib/image-storage'
 import { getRoomFolder } from '@/lib/room-folder-map'
 
-export const runtime = 'edge'
+// Helper to convert blob URL to public path
+function convertBlobUrlToPublicPath(blobUrl: string, roomSlug: string): string {
+  try {
+    const urlMatch = blobUrl.match(/\/rooms\/([^\/]+)\/(.+)$/)
+    if (!urlMatch) return blobUrl
+
+    const filename = decodeURIComponent(urlMatch[2])
+    const folderName = getRoomFolder(roomSlug)
+    if (!folderName) return blobUrl
+
+    return `/Pictures/${folderName}/${filename}`
+  } catch {
+    return blobUrl
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,17 +45,27 @@ export async function GET(request: NextRequest) {
     const blobImages = await listAllRoomImages(roomSlug)
 
     // Transform data into our image objects
-    const images = blobImages.map(blob => ({
-      url: blob.url,
-      filename: blob.filename,
-      size: blob.size || null,
-      uploadedAt: blob.uploadedAt instanceof Date 
-        ? blob.uploadedAt.toISOString() 
-        : (blob.uploadedAt as string) || null,
-      storage: isBlobStorageEnabled() ? 'blob' as const : 'database' as const,
-      is_thumbnail: blob.is_thumbnail || false,
-      display_order: blob.display_order || 0
-    }))
+    // Convert blob URLs to public folder paths if blob storage is disabled
+    const images = blobImages.map(blob => {
+      let imageUrl = blob.url
+      
+      // Convert blob URL to public path if blob storage is disabled
+      if (!isBlobStorageEnabled() && isBlobStorageUrl(imageUrl)) {
+        imageUrl = convertBlobUrlToPublicPath(imageUrl, roomSlug)
+      }
+      
+      return {
+        url: imageUrl,
+        filename: blob.filename,
+        size: blob.size || null,
+        uploadedAt: blob.uploadedAt instanceof Date 
+          ? blob.uploadedAt.toISOString() 
+          : (blob.uploadedAt as string) || null,
+        storage: isBlobStorageEnabled() ? 'blob' as const : 'database' as const,
+        is_thumbnail: blob.is_thumbnail || false,
+        display_order: blob.display_order || 0
+      }
+    })
 
     return NextResponse.json({
       room: roomSlug,

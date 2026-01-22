@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getRoomFolder } from '@/lib/room-folder-map'
 import { listRoomImages, isBlobStorageEnabled, isBlobStorageUrl } from '@/lib/image-storage'
 import { sql } from '@/lib/db'
-import { readdir } from 'fs/promises'
-import { join } from 'path'
 
 // Helper to convert blob URL to public path
 function convertBlobUrlToPublicPath(blobUrl: string, roomSlug: string): string {
@@ -63,6 +61,7 @@ export async function GET(
       }
       
       // Convert blob URL to public path if blob storage is disabled
+      // This is necessary because blob URLs may return 403 errors
       if (thumbnailUrl && !isBlobStorageEnabled() && isBlobStorageUrl(thumbnailUrl)) {
         thumbnailUrl = convertBlobUrlToPublicPath(thumbnailUrl, slug)
       }
@@ -71,7 +70,9 @@ export async function GET(
       console.warn('Error fetching thumbnail (table may not exist yet):', error)
     }
 
-    // Get images from database (avoids Vercel Blob list() operations)
+    // Get images from database (avoids Vercel Blob list() operations and filesystem reads)
+    // Note: We can't use readdir in serverless functions as it exceeds size limits
+    // All images must be stored in the database for serverless compatibility
     let imageFiles: string[] = []
     try {
       imageFiles = await listRoomImages(slug)
@@ -80,32 +81,41 @@ export async function GET(
       imageFiles = []
     }
 
-    // If no images found, fallback to reading from public folder directly
+    // If no images found in database, return empty array
+    // Images must be uploaded through the admin dashboard to populate the database
     if (imageFiles.length === 0) {
-      try {
-        const publicFolderPath = join(process.cwd(), 'public', 'Pictures', folderName)
-        const files = await readdir(publicFolderPath)
-        
-        // Filter for image files and create paths
-        const imageExtensions = ['.jpg', '.jpeg', '.png', '.JPG', '.JPEG', '.PNG']
-        imageFiles = files
-          .filter(file => imageExtensions.some(ext => file.endsWith(ext)))
-          .map(file => `/Pictures/${folderName}/${file}`)
-          .sort()
-        
-        console.log(`Found ${imageFiles.length} images in public folder for ${slug}`)
-      } catch (error) {
-        console.warn(`Error reading public folder for ${slug}:`, error)
-        // Continue with empty array
-      }
+      console.warn(`No images found in database for ${slug}. Please upload images through the admin dashboard.`)
     }
 
     // Reorder images to put thumbnail first if it exists
-    if (thumbnailUrl && imageFiles.includes(thumbnailUrl)) {
-      imageFiles = [
-        thumbnailUrl,
-        ...imageFiles.filter(url => url !== thumbnailUrl)
-      ]
+    // Also add thumbnail to images list if it's not already there
+    if (thumbnailUrl) {
+      // Check if thumbnail is already in the list (compare by filename to handle URL format differences)
+      const thumbnailFilename = thumbnailUrl.split('/').pop()?.toLowerCase()
+      const thumbnailInList = imageFiles.some(img => {
+        const imgFilename = img.split('/').pop()?.toLowerCase()
+        return imgFilename === thumbnailFilename
+      })
+      
+      if (thumbnailInList) {
+        // Reorder to put thumbnail first
+        imageFiles = [
+          thumbnailUrl,
+          ...imageFiles.filter(url => {
+            const urlFilename = url.split('/').pop()?.toLowerCase()
+            return urlFilename !== thumbnailFilename
+          })
+        ]
+      } else {
+        // Add thumbnail to the beginning of the list if not found
+        imageFiles = [thumbnailUrl, ...imageFiles]
+      }
+    }
+
+    // Log for debugging
+    console.log(`[${slug}] Returning ${imageFiles.length} images, thumbnail: ${thumbnailUrl ? 'yes' : 'no'}`)
+    if (imageFiles.length > 0) {
+      console.log(`[${slug}] First image: ${imageFiles[0]}`)
     }
 
     return NextResponse.json({

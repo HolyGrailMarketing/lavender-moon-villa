@@ -40,7 +40,11 @@ export default function ImagesPage() {
       const response = await fetch(`/api/admin/images/thumbnail?room=${roomSlug}`)
       if (response.ok) {
         const data = await response.json()
-        setThumbnailUrl(data.thumbnailUrl || null)
+        let thumbnail = data.thumbnailUrl || null
+        
+        // Convert blob URL to public path if it's a blob URL and blob storage is disabled
+        // This is handled on the server side, but we keep this as a fallback
+        setThumbnailUrl(thumbnail)
       }
     } catch (error) {
       console.error('Error loading thumbnail:', error)
@@ -160,7 +164,12 @@ export default function ImagesPage() {
       })
 
       if (response.ok) {
-        setThumbnailUrl(imageUrl)
+        // Reload thumbnail from server to get the correct URL format (may be converted)
+        // This ensures the thumbnail URL matches the format in the images list
+        await loadThumbnail(selectedRoom)
+        
+        // Also reload images to update the thumbnail flag in the list
+        await loadImages(selectedRoom)
       } else {
         const errorData = await response.json()
         alert(`Failed to set thumbnail: ${errorData.error}`)
@@ -389,7 +398,19 @@ export default function ImagesPage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                 {images.map((image, index) => {
-                  const isThumbnail = thumbnailUrl === image.url
+                  // Compare thumbnail URL with image URL (handle both blob and public paths)
+                  // Normalize URLs for comparison by extracting just the filename
+                  const getUrlForComparison = (url: string) => {
+                    if (!url) return ''
+                    // Extract filename from URL
+                    const parts = url.split('/')
+                    return parts[parts.length - 1]
+                  }
+                  
+                  const isThumbnail = thumbnailUrl && image.url && (
+                    thumbnailUrl === image.url || 
+                    getUrlForComparison(thumbnailUrl) === getUrlForComparison(image.url)
+                  )
                   return (
                     <div key={index} className="relative group">
                       <div className={`aspect-square relative overflow-hidden rounded-lg bg-gray-100 ${isThumbnail ? 'ring-2 ring-moon-gold ring-offset-2' : ''}`}>

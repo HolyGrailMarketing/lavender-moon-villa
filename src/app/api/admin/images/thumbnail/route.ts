@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/session'
 import { sql } from '@/lib/db'
+import { isBlobStorageEnabled, isBlobStorageUrl, clearImageCache } from '@/lib/image-storage'
+import { getRoomFolder } from '@/lib/room-folder-map'
+
+// Helper to convert blob URL to public path
+function convertBlobUrlToPublicPath(blobUrl: string, roomSlug: string): string {
+  try {
+    const urlMatch = blobUrl.match(/\/rooms\/([^\/]+)\/(.+)$/)
+    if (!urlMatch) return blobUrl
+
+    const filename = decodeURIComponent(urlMatch[2])
+    const folderName = getRoomFolder(roomSlug)
+    if (!folderName) return blobUrl
+
+    return `/Pictures/${folderName}/${filename}`
+  } catch {
+    return blobUrl
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +46,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ thumbnailUrl: null })
     }
 
-    return NextResponse.json({ thumbnailUrl: result[0].thumbnail_url })
+    let thumbnailUrl = result[0].thumbnail_url
+
+    // Convert blob URL to public path if blob storage is disabled
+    if (thumbnailUrl && !isBlobStorageEnabled() && isBlobStorageUrl(thumbnailUrl)) {
+      thumbnailUrl = convertBlobUrlToPublicPath(thumbnailUrl, roomSlug)
+    }
+
+    return NextResponse.json({ thumbnailUrl })
 
   } catch (error) {
     console.error('Error fetching thumbnail:', error)
@@ -78,6 +103,9 @@ export async function POST(request: NextRequest) {
       console.warn('Error updating room_images thumbnail flag:', error)
       // Continue even if this fails - thumbnail is still set in room_thumbnails table
     }
+
+    // Clear image cache for this room so homepage gets fresh data
+    clearImageCache(roomSlug)
 
     return NextResponse.json({
       success: true,
