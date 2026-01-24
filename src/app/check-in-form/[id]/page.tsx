@@ -55,7 +55,8 @@ export default function CheckInFormPage() {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      timeZone: 'UTC', // Prevent timezone offset from shifting the date
     })
   }
 

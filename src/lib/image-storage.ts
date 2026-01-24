@@ -142,16 +142,15 @@ export async function listRoomImages(roomSlug: string): Promise<string[]> {
       const uniqueImages = new Set(images)
       images = Array.from(uniqueImages)
       
-      // If blob storage is disabled, convert blob URLs to public folder paths
-      // This is necessary because blob URLs may not be publicly accessible
-      if (!isBlobStorageEnabled()) {
-        images = images.map(url => {
-          if (isBlobStorageUrl(url)) {
-            return convertBlobUrlToPublicPath(url, roomSlug)
-          }
-          return url
-        })
-      }
+      // Convert blob URLs to public folder paths
+      // This is necessary because blob URLs may return 403 errors even if blob storage is "enabled"
+      // Always convert blob URLs to public paths to ensure images load correctly
+      images = images.map(url => {
+        if (isBlobStorageUrl(url)) {
+          return convertBlobUrlToPublicPath(url, roomSlug)
+        }
+        return url
+      })
       
       console.log(`[listRoomImages] ${roomSlug}: Found ${images.length} images in database`)
       if (images.length > 0) {
@@ -319,21 +318,20 @@ export async function listAllRoomImages(roomSlug: string) {
         return true
       })
 
-      // If blob storage is disabled, convert blob URLs to public folder paths
-      // This is necessary because blob URLs may return 403 errors
-      if (!isBlobStorageEnabled()) {
-        images = images.map(img => {
-          if (isBlobStorageUrl(img.url)) {
-            const convertedUrl = convertBlobUrlToPublicPath(img.url, roomSlug)
-            return {
-              ...img,
-              url: convertedUrl,
-              pathname: convertedUrl.split('/').slice(-2).join('/')
-            }
+      // Convert blob URLs to public folder paths
+      // This is necessary because blob URLs may return 403 errors even if blob storage is "enabled"
+      // Always convert blob URLs to public paths to ensure images load correctly
+      images = images.map(img => {
+        if (isBlobStorageUrl(img.url)) {
+          const convertedUrl = convertBlobUrlToPublicPath(img.url, roomSlug)
+          return {
+            ...img,
+            url: convertedUrl,
+            pathname: convertedUrl.split('/').slice(-2).join('/')
           }
-          return img
-        })
-      }
+        }
+        return img
+      })
 
       // Cache the result
       imageCache.set(cacheKey, {

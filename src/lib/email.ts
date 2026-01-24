@@ -143,12 +143,14 @@ function generateBookingConfirmationEmail(data: ReservationEmailData): string {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'UTC', // Prevent timezone offset from shifting the date
   })
   const checkOutDate = new Date(data.checkOut).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'UTC', // Prevent timezone offset from shifting the date
   })
 
   // Ensure baseUrl doesn't have trailing slash
@@ -327,8 +329,8 @@ function generateReservationUpdateEmail(data: ReservationEmailData, changes: str
       <div style="background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
         <h3 style="color: #6B4E8E; margin-top: 0;">Updated Reservation Details</h3>
         <p><strong>Room:</strong> ${data.roomName} (${data.roomNumber})</p>
-        <p><strong>Check-in:</strong> ${new Date(data.checkIn).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-        <p><strong>Check-out:</strong> ${new Date(data.checkOut).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p><strong>Check-in:</strong> ${new Date(data.checkIn).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</p>
+        <p><strong>Check-out:</strong> ${new Date(data.checkOut).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</p>
         <p><strong>Total Amount:</strong> $${data.totalPrice.toFixed(2)}</p>
       </div>
 
@@ -366,7 +368,7 @@ function generateCancellationEmail(data: ReservationEmailData): string {
       <div style="background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
         <p><strong>Cancelled Reservation:</strong></p>
         <p>Room: ${data.roomName} (${data.roomNumber})</p>
-        <p>Dates: ${new Date(data.checkIn).toLocaleDateString()} - ${new Date(data.checkOut).toLocaleDateString()}</p>
+        <p>Dates: ${new Date(data.checkIn).toLocaleDateString('en-US', { timeZone: 'UTC' })} - ${new Date(data.checkOut).toLocaleDateString('en-US', { timeZone: 'UTC' })}</p>
       </div>
 
       <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #888; font-size: 12px;">
@@ -603,6 +605,7 @@ function generateCheckInEmail(data: {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'UTC', // Prevent timezone offset from shifting the date
   })
   
   return `
@@ -688,6 +691,7 @@ export async function sendCheckInEmail(data: {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
+      timeZone: 'UTC', // Prevent timezone offset from shifting the date
     })
     const subject = `Check-In Instructions for ${checkInDate} - Reservation #${data.reservationId}`
 

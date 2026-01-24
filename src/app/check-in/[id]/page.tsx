@@ -156,7 +156,7 @@ export default function CheckInPage() {
             <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg mb-6">
               <p className="font-semibold">Check-in Not Available Yet</p>
               <p className="text-sm mt-1">
-                Check-in is only available on your check-in date ({new Date(reservation.check_in).toLocaleDateString()}) between 3:00 PM and 9:00 PM.
+                Check-in is only available on your check-in date ({new Date(reservation.check_in).toLocaleDateString('en-US', { timeZone: 'UTC' })}) between 3:00 PM and 9:00 PM.
               </p>
             </div>
           )}
@@ -180,7 +180,7 @@ export default function CheckInPage() {
                 <p><strong>Reservation #:</strong> {reservation.id}</p>
                 <p><strong>Guest:</strong> {reservation.guest_name}</p>
                 <p><strong>Room:</strong> {reservation.room_number} - {reservation.room_name}</p>
-                <p><strong>Check-in Date:</strong> {new Date(reservation.check_in).toLocaleDateString()}</p>
+                <p><strong>Check-in Date:</strong> {new Date(reservation.check_in).toLocaleDateString('en-US', { timeZone: 'UTC' })}</p>
                 <p><strong>Check-in Time:</strong> 3:00 PM - 9:00 PM</p>
               </div>
             </div>

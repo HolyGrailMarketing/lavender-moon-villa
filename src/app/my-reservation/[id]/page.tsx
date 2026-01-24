@@ -289,7 +289,7 @@ export default function EditReservationPage() {
                     className="w-full px-4 py-3 border-2 border-lavender-pale rounded-lg focus:border-lavender-medium focus:outline-none"
                   />
                 ) : (
-                  <p className="text-gray-900">{new Date(reservation.check_in).toLocaleDateString()}</p>
+                  <p className="text-gray-900">{new Date(reservation.check_in).toLocaleDateString('en-US', { timeZone: 'UTC' })}</p>
                 )}
               </div>
 
@@ -304,7 +304,7 @@ export default function EditReservationPage() {
                     className="w-full px-4 py-3 border-2 border-lavender-pale rounded-lg focus:border-lavender-medium focus:outline-none"
                   />
                 ) : (
-                  <p className="text-gray-900">{new Date(reservation.check_out).toLocaleDateString()}</p>
+                  <p className="text-gray-900">{new Date(reservation.check_out).toLocaleDateString('en-US', { timeZone: 'UTC' })}</p>
                 )}
               </div>
 

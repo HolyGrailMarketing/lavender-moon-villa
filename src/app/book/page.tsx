@@ -522,11 +522,11 @@ export default function BookPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Check-in:</span>
-                    <span className="font-medium">{new Date(formData.check_in).toLocaleDateString()}</span>
+                    <span className="font-medium">{new Date(formData.check_in + 'T12:00:00').toLocaleDateString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Check-out:</span>
-                    <span className="font-medium">{new Date(formData.check_out).toLocaleDateString()}</span>
+                    <span className="font-medium">{new Date(formData.check_out + 'T12:00:00').toLocaleDateString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Nights:</span>
@@ -591,11 +591,11 @@ export default function BookPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Check-in:</span>
-                  <span className="font-medium">{new Date(formData.check_in).toLocaleDateString()}</span>
+                  <span className="font-medium">{new Date(formData.check_in + 'T12:00:00').toLocaleDateString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Check-out:</span>
-                  <span className="font-medium">{new Date(formData.check_out).toLocaleDateString()}</span>
+                  <span className="font-medium">{new Date(formData.check_out + 'T12:00:00').toLocaleDateString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Nights:</span>

@@ -128,7 +128,7 @@ export async function POST(request: Request) {
           id: itemId, // Try 'id' instead of 'itemId'
           sku: itemSku, // Try 'sku' instead of 'itemSku'
           name: `Room ${resDetails.room_number} - ${resDetails.room_name}`,
-          description: `Check-in: ${new Date(resDetails.check_in).toLocaleDateString()} - Check-out: ${new Date(resDetails.check_out).toLocaleDateString()}`,
+          description: `Check-in: ${new Date(resDetails.check_in).toLocaleDateString('en-US', { timeZone: 'UTC' })} - Check-out: ${new Date(resDetails.check_out).toLocaleDateString('en-US', { timeZone: 'UTC' })}`,
           quantity: 1,
           price: Number(totalAmount.toFixed(2)),
         }

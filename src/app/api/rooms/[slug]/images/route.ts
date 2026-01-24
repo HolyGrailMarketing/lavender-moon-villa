@@ -60,9 +60,10 @@ export async function GET(
         }
       }
       
-      // Convert blob URL to public path if blob storage is disabled
+      // Convert blob URL to public path
       // This is necessary because blob URLs may return 403 errors
-      if (thumbnailUrl && !isBlobStorageEnabled() && isBlobStorageUrl(thumbnailUrl)) {
+      // Always convert blob URLs to public paths to ensure images load correctly
+      if (thumbnailUrl && isBlobStorageUrl(thumbnailUrl)) {
         thumbnailUrl = convertBlobUrlToPublicPath(thumbnailUrl, slug)
       }
     } catch (error) {

@@ -130,12 +130,12 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
       const month = parseInt(match[2]) - 1 // JavaScript months are 0-indexed
       const day = parseInt(match[3])
       const date = new Date(year, month, day)
-      return date.toLocaleDateString()
+      return date.toLocaleDateString('en-US', { timeZone: 'UTC' })
     }
     
-    // Fallback: try regular Date parsing (may have timezone issues)
+    // Fallback: try regular Date parsing with UTC timezone to prevent date shifting
     try {
-      return new Date(dateValue).toLocaleDateString()
+      return new Date(dateValue).toLocaleDateString('en-US', { timeZone: 'UTC' })
     } catch (e) {
       return '-'
     }
@@ -1034,7 +1034,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                     </div>
                                     <p className="text-sm text-gray-600">{r.room_number} - {r.room_name}</p>
                                     <p className={`text-xs mt-1 ${isPastDue ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
-                                      Check-in: {new Date(r.check_in).toLocaleDateString()}
+                                      Check-in: {new Date(r.check_in).toLocaleDateString('en-US', { timeZone: 'UTC' })}
                                     </p>
                                   </div>
                                   <button
@@ -1063,7 +1063,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                 <div>
                                   <p className="font-medium text-gray-900">{r.guest_name}</p>
                                   <p className="text-sm text-gray-600">{r.room_number} - {r.room_name}</p>
-                                  <p className="text-xs text-gray-500 mt-1">Check-out: {new Date(r.check_out).toLocaleDateString()}</p>
+                                  <p className="text-xs text-gray-500 mt-1">Check-out: {new Date(r.check_out).toLocaleDateString('en-US', { timeZone: 'UTC' })}</p>
                                 </div>
                                 <button
                                   onClick={() => handleQuickCheckOut(r.id)}

@@ -117,7 +117,7 @@ function DataAccessContent() {
             </Link>
             <h1 className="text-3xl font-serif">Your Personal Data</h1>
             <p className="text-lavender-pale mt-2">
-              Requested on {new Date(userData.request_date).toLocaleDateString()}
+              Requested on {new Date(userData.request_date).toLocaleDateString('en-US', { timeZone: 'UTC' })}
             </p>
           </div>
         </div>
@@ -166,7 +166,7 @@ function DataAccessContent() {
               </div>
               <div>
                 <label className="text-sm text-gray-500">Account Created</label>
-                <p className="font-medium">{new Date(userData.personal_information.account_created).toLocaleDateString()}</p>
+                <p className="font-medium">{new Date(userData.personal_information.account_created).toLocaleDateString('en-US', { timeZone: 'UTC' })}</p>
               </div>
             </div>
           </div>
@@ -199,11 +199,11 @@ function DataAccessContent() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
                       <div>
                         <span className="text-gray-500">Check-in:</span>
-                        <p>{new Date(reservation.check_in).toLocaleDateString()}</p>
+                        <p>{new Date(reservation.check_in).toLocaleDateString('en-US', { timeZone: 'UTC' })}</p>
                       </div>
                       <div>
                         <span className="text-gray-500">Check-out:</span>
-                        <p>{new Date(reservation.check_out).toLocaleDateString()}</p>
+                        <p>{new Date(reservation.check_out).toLocaleDateString('en-US', { timeZone: 'UTC' })}</p>
                       </div>
                       <div>
                         <span className="text-gray-500">Guests:</span>

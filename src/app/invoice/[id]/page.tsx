@@ -69,12 +69,14 @@ export default function InvoicePage() {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'UTC', // Prevent timezone offset from shifting the date
   })
   const checkOutDate = new Date(invoice.check_out).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+    timeZone: 'UTC', // Prevent timezone offset from shifting the date
   })
 
   const nights = Math.ceil(
