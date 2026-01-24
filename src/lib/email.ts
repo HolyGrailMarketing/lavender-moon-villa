@@ -254,9 +254,9 @@ function generateBookingConfirmationEmail(data: ReservationEmailData): string {
               <td style="padding: 8px 0; text-align: right; color: #666;">$${amountPaid.toFixed(2)}</td>
             </tr>
             <tr style="border-top: 1px solid #ddd;">
-              <td style="padding: 12px 0; text-align: right; font-weight: bold;">${outstandingBalance <= 0 ? 'Status:' : 'Outstanding Balance:'}</td>
+              <td style="padding: 12px 0; text-align: right; font-weight: bold;">Outstanding Balance:</td>
               <td style="padding: 12px 0; text-align: right; font-weight: bold; color: ${outstandingBalance > 0 ? '#d32f2f' : '#4caf50'};">
-                ${outstandingBalance > 0 ? `$${outstandingBalance.toFixed(2)}` : outstandingBalance < 0 ? `✓ PAID IN FULL ($${Math.abs(outstandingBalance).toFixed(2)} credit)` : '✓ PAID IN FULL'}
+                $${outstandingBalance.toFixed(2)}
               </td>
             </tr>
           </table>

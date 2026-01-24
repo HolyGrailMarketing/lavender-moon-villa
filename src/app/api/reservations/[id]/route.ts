@@ -127,6 +127,38 @@ export async function PATCH(
       changes.push('Special requests updated')
     }
 
+    // Auto-update status based on payment amount
+    // Only if status is not being explicitly set and is a payment-related status
+    let finalStatus = status
+    const currentTotalPrice = total_price !== undefined ? parseFloat(total_price) : parseFloat(current.total_price as string)
+    const newAmountPaid = amount_paid !== undefined ? parseFloat(amount_paid) : parseFloat(current.amount_paid as string || '0')
+    
+    // Only auto-update if amount_paid is being changed and status is not explicitly provided
+    if (amount_paid !== undefined && !status) {
+      const paymentStatuses = ['pending', 'deposit_paid', 'paid_in_full']
+      const currentStatus = current.status as string
+      
+      // Only auto-update if current status is a payment-related status (not checked_in, checked_out, cancelled)
+      if (paymentStatuses.includes(currentStatus)) {
+        if (newAmountPaid >= currentTotalPrice && currentTotalPrice > 0) {
+          finalStatus = 'paid_in_full'
+          if (currentStatus !== 'paid_in_full') {
+            changes.push('Status changed to paid_in_full (payment complete)')
+          }
+        } else if (newAmountPaid > 0) {
+          finalStatus = 'deposit_paid'
+          if (currentStatus !== 'deposit_paid') {
+            changes.push('Status changed to deposit_paid')
+          }
+        } else {
+          finalStatus = 'pending'
+          if (currentStatus !== 'pending') {
+            changes.push('Status changed to pending')
+          }
+        }
+      }
+    }
+
     const result = await sql`
       UPDATE reservations 
       SET 
@@ -135,7 +167,7 @@ export async function PATCH(
         check_out = COALESCE(${check_out}::date, check_out),
         num_guests = COALESCE(${num_guests}, num_guests),
         total_price = COALESCE(${total_price}, total_price),
-        status = COALESCE(${status}, status),
+        status = COALESCE(${finalStatus}, status),
         special_requests = COALESCE(${special_requests}, special_requests),
         source = COALESCE(${source}, source),
         use_custom_total = COALESCE(${use_custom_total}, use_custom_total),
