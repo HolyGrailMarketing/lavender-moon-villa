@@ -303,11 +303,22 @@ export default function InvoicePage() {
                   <td className="py-2 text-right text-gray-600 w-32">${amountPaid.toFixed(2)}</td>
                 </tr>
                 <tr className="border-t-2 border-gray-400">
-                  <td className="py-3 text-right pr-4 font-bold text-lg">Outstanding Balance:</td>
-                  <td className={`py-3 text-right font-bold text-lg w-32 ${outstandingBalance > 0 ? 'text-red-600' : outstandingBalance < 0 ? 'text-blue-600' : 'text-green-600'}`}>
-                    ${Math.abs(outstandingBalance).toFixed(2)}
-                    {outstandingBalance < 0 && <span className="text-sm ml-1">(credit)</span>}
-                    {outstandingBalance === 0 && <span className="text-sm ml-1">(paid in full)</span>}
+                  <td className="py-3 text-right pr-4 font-bold text-lg">
+                    {outstandingBalance <= 0 ? 'Status:' : 'Outstanding Balance:'}
+                  </td>
+                  <td className={`py-3 text-right font-bold text-lg w-32 ${outstandingBalance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {outstandingBalance > 0 ? (
+                      `$${outstandingBalance.toFixed(2)}`
+                    ) : outstandingBalance < 0 ? (
+                      <span>PAID IN FULL <span className="text-sm font-normal">(${Math.abs(outstandingBalance).toFixed(2)} credit)</span></span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        PAID IN FULL
+                      </span>
+                    )}
                   </td>
                 </tr>
               </tbody>
