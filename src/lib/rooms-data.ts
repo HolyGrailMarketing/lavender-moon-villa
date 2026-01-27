@@ -32,21 +32,21 @@ export const roomsData: RoomData[] = [
     images: [
       '/Pictures/Victoria-Suite/placeholder.jpg', // Add your images here
     ],
-    amenities: ['WiFi', 'AC', 'Private Bathroom', 'Jacuzzi', 'King Bed', 'Dining Area', 'Ocean View'],
+    amenities: ['WiFi', 'AC', 'Private Bathroom', 'King Bed', 'Dining Area', 'Ocean View'],
     features: ['King Bed', 'Living Area', 'Mountain View'],
-    highlights: ['Ocean & Mountain Views', 'Private Jacuzzi', 'Spacious Living Area', 'Premium Linens'],
+    highlights: ['Ocean & Mountain Views', 'Spacious Living Area', 'Premium Linens'],
   },
   {
     slug: 'alexander-suite',
     name: 'Alexander Suite',
     type: 'suite',
     tagline: 'Luxurious • Stunning Views',
-    description: 'The Alexander Suite features two full-sized beds with a private balcony offering stunning sea and mountain views. Equipped with modern conveniences including a microwave, coffee pot, and mini fridge.',
+    description: 'The Alexander Suite features a king bed and convertible couch with a private balcony offering stunning sea and mountain views. Equipped with modern conveniences including a microwave, coffee pot, and mini fridge.',
     price: 280,
     maxGuests: 2,
     extraGuestCharge: 60,
     extraGuestMax: 3,
-    beds: 'Two Full Beds',
+    beds: '1 King Bed + Convertible Couch',
     size: 'Large',
     images: [
       '/Pictures/207-A/Lavender%20Moon%20207%20A%20(1).JPG',
@@ -54,7 +54,7 @@ export const roomsData: RoomData[] = [
       '/Pictures/207-A/Lavender%20Moon%20207%20A%20(3).JPG',
     ],
     amenities: ['WiFi', 'AC', 'Private Bathroom', 'Balcony', 'Microwave', 'Coffee Pot', 'Mini Fridge'],
-    features: ['Two Full Beds', 'Balcony', 'AC'],
+    features: ['King Bed', 'Convertible Couch', 'Balcony', 'AC'],
     highlights: ['Sea & Mountain Views', 'Private Balcony', 'In-Room Kitchenette', 'Modern Amenities'],
   },
   {
@@ -67,13 +67,13 @@ export const roomsData: RoomData[] = [
     maxGuests: 2,
     extraGuestCharge: 60,
     extraGuestMax: 3,
-    beds: 'Queen Bed',
+    beds: '1 King Bed + Convertible Couch',
     size: 'Large',
     images: [
       '/Pictures/Renee-Suite/placeholder.jpg', // Add your images here
     ],
-    amenities: ['WiFi', 'AC', 'Private Bathroom', 'Terrace', 'Queen Bed', 'Work Desk'],
-    features: ['Queen Bed', 'Private Bath', 'WiFi'],
+    amenities: ['WiFi', 'AC', 'Private Bathroom', 'Terrace', 'King Bed', 'Work Desk'],
+    features: ['King Bed', 'Convertible Couch', 'Private Bath', 'WiFi'],
     highlights: ['Private Terrace', 'Work Desk', 'Peaceful Setting', 'Garden Views'],
   },
   // Standard Rooms
@@ -109,7 +109,7 @@ export const roomsData: RoomData[] = [
     maxGuests: 4,
     extraGuestCharge: 60,
     extraGuestMax: 5,
-    beds: 'Queen Bed',
+    beds: 'Two Queen Beds',
     size: 'Standard',
     images: [
       '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(1).JPG',
@@ -117,7 +117,7 @@ export const roomsData: RoomData[] = [
       '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(5).JPG',
     ],
     amenities: ['WiFi', 'AC', 'Private Bathroom'],
-    features: ['Queen Bed', 'AC', 'WiFi'],
+    features: ['Two Queen Beds', 'AC', 'WiFi'],
     highlights: ['Modern Amenities', 'Peaceful Setting', 'Private Bathroom'],
   },
   {
@@ -128,13 +128,13 @@ export const roomsData: RoomData[] = [
     description: 'A cozy room with garden views, perfect for a relaxing stay. Features all essential amenities for a comfortable visit.',
     price: 225,
     maxGuests: 4,
-    beds: 'Queen Bed',
+    beds: 'Two Queen Beds',
     size: 'Standard',
     images: [
       '/Pictures/Room-108/placeholder.jpg', // Add your images here
     ],
     amenities: ['WiFi', 'AC', 'Private Bathroom'],
-    features: ['Garden View', 'AC', 'WiFi'],
+    features: ['Two Queen Beds', 'Garden View', 'AC', 'WiFi'],
     highlights: ['Garden Views', 'Quiet Location', 'Modern Amenities'],
   },
   {
@@ -145,13 +145,13 @@ export const roomsData: RoomData[] = [
     description: 'A cozy room with modern amenities, ideal for couples or solo travelers seeking comfort and convenience.',
     price: 220,
     maxGuests: 4,
-    beds: 'Queen Bed',
+    beds: 'Two Queen Beds',
     size: 'Standard',
     images: [
       '/Pictures/Room%20206-B/Lavender%20Moon%20206B%20(1).JPG',
     ],
     amenities: ['WiFi', 'AC', 'Private Bathroom'],
-    features: ['Modern', 'AC', 'WiFi'],
+    features: ['Two Queen Beds', 'Modern', 'AC', 'WiFi'],
     highlights: ['Modern Design', 'Comfortable', 'Private Bathroom'],
   },
   {
@@ -161,12 +161,12 @@ export const roomsData: RoomData[] = [
     tagline: 'Comfortable • Modern',
     description: 'A comfortable room with modern amenities and scenic views.',
     price: 200,
-    maxGuests: 4,
-    beds: 'Two Beds',
+    maxGuests: 2,
+    beds: 'One Queen Bed',
     size: 'Standard',
     images: [],
     amenities: ['WiFi', 'AC', 'Private Bathroom'],
-    features: ['Modern', 'AC', 'WiFi'],
+    features: ['One Queen Bed', 'Modern', 'AC', 'WiFi'],
     highlights: ['Modern Design', 'Comfortable', 'Private Bathroom'],
   },
   {
@@ -177,11 +177,11 @@ export const roomsData: RoomData[] = [
     description: 'A cozy room perfect for a comfortable stay.',
     price: 190,
     maxGuests: 2,
-    beds: 'Queen Bed',
+    beds: 'Full Bed',
     size: 'Standard',
     images: [],
     amenities: ['WiFi', 'AC', 'Private Bathroom'],
-    features: ['Cozy', 'AC', 'WiFi'],
+    features: ['Full Bed', 'Cozy', 'AC', 'WiFi'],
     highlights: ['Comfortable', 'Private Bathroom', 'Modern Amenities'],
   },
   {
@@ -206,15 +206,15 @@ export const roomsData: RoomData[] = [
     tagline: 'Scenic • Mountain Views',
     description: 'Enjoy scenic mountain views from this comfortable room. Perfect for nature lovers seeking tranquility.',
     price: 180,
-    maxGuests: 2,
-    beds: 'Queen Bed',
+    maxGuests: 4,
+    beds: 'Two Full Beds',
     size: 'Standard',
     images: [
       '/Pictures/207-A/Lavender%20Moon%20207%20A%20(1).JPG',
       '/Pictures/207-A/Lavender%20Moon%20207%20A%20(2).JPG',
     ],
     amenities: ['WiFi', 'AC', 'Private Bathroom', 'Mountain View'],
-    features: ['Mountain View', 'AC', 'WiFi'],
+    features: ['Two Full Beds', 'Mountain View', 'AC', 'WiFi'],
     highlights: ['Mountain Views', 'Peaceful', 'Natural Setting'],
   },
   {
@@ -225,13 +225,13 @@ export const roomsData: RoomData[] = [
     description: 'A standard room with all essential comforts for a pleasant stay. Great value accommodation.',
     price: 190,
     maxGuests: 4,
-    beds: 'Queen Bed',
+    beds: 'Two Full Beds',
     size: 'Standard',
     images: [
       '/Pictures/Room%20107-CF/Lavender%20Moon%20107CF%20(2).JPG',
     ],
     amenities: ['WiFi', 'AC', 'Private Bathroom'],
-    features: ['Standard', 'AC', 'WiFi'],
+    features: ['Two Full Beds', 'Standard', 'AC', 'WiFi'],
     highlights: ['Essential Comforts', 'Great Value', 'Private Bathroom'],
   },
   {
@@ -242,13 +242,13 @@ export const roomsData: RoomData[] = [
     description: 'Connecting rooms ideal for families or groups. Spacious accommodation with the convenience of adjoining spaces.',
     price: 280,
     maxGuests: 6,
-    beds: 'Two Queen Beds',
+    beds: 'Two Full Beds + Queen Bed',
     size: 'Large (Connecting)',
     images: [
       '/Pictures/Room-208AB/placeholder.jpg', // Add your images here
     ],
     amenities: ['WiFi', 'AC', 'Private Bathroom', 'Connecting Door'],
-    features: ['Connecting Rooms', 'Family Friendly', 'Spacious'],
+    features: ['Two Full Beds + Queen Bed', 'Connecting Rooms', 'Family Friendly', 'Spacious'],
     highlights: ['Connecting Rooms', 'Ideal for Families', 'Extra Space'],
   },
   {
@@ -259,13 +259,13 @@ export const roomsData: RoomData[] = [
     description: 'A spacious room with a private balcony offering mountain views. Perfect for guests who appreciate outdoor space.',
     price: 220,
     maxGuests: 4,
-    beds: 'Queen Bed + Single',
+    beds: 'Two Queen Beds',
     size: 'Large',
     images: [
       '/Pictures/207-A/Lavender%20Moon%20207%20A%20(2).JPG',
     ],
     amenities: ['WiFi', 'AC', 'Private Bathroom', 'Balcony'],
-    features: ['Balcony', 'Mountain View', 'AC'],
+    features: ['Two Queen Beds', 'Balcony', 'Mountain View', 'AC'],
     highlights: ['Private Balcony', 'Mountain Views', 'Spacious Layout'],
   },
 ]
