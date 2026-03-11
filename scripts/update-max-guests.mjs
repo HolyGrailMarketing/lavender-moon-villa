@@ -8,7 +8,7 @@ import { neon } from '@neondatabase/serverless'
 
 // Room updates: room_number -> max_guests
 const roomUpdates = {
-  '206-A': 4,
+  '206-A': 2,
   '206-B': 2,
   '207-B': 2,
   '208A': 4,

@@ -204,18 +204,85 @@ export default function CheckInFormPage() {
       {/* Print-specific styles */}
       <style jsx global>{`
         @media print {
-          body {
+          * {
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          
+
+          body {
+            font-size: 11pt;
+            line-height: 1.3;
+          }
+
           .print\\:hidden {
             display: none !important;
           }
-          
+
           @page {
             size: letter;
-            margin: 0.75in;
+            margin: 0.5in;
+          }
+
+          /* Reduce logo size for print */
+          img[alt="Lavender Moon Villas"] {
+            width: 80px !important;
+            height: 80px !important;
+          }
+
+          /* Reduce heading margins */
+          h1, h2 {
+            margin-bottom: 0.2in !important;
+          }
+
+          /* Compress table spacing */
+          table {
+            margin-bottom: 0.2in !important;
+          }
+
+          td {
+            padding: 4px !important;
+          }
+
+          /* Compress section spacing */
+          div {
+            page-break-inside: avoid;
+          }
+
+          /* Reduce paragraph spacing in terms */
+          .space-y-4 > p {
+            margin-bottom: 6px !important;
+          }
+
+          /* Reduce margins */
+          .mb-8 {
+            margin-bottom: 0.15in !important;
+          }
+
+          .mb-6 {
+            margin-bottom: 0.1in !important;
+          }
+
+          .mt-12 {
+            margin-top: 0.15in !important;
+          }
+
+          .mt-16 {
+            margin-top: 0.1in !important;
+          }
+
+          .mt-2 {
+            margin-top: 4px !important;
+          }
+
+          /* Signature section spacing */
+          .flex.justify-between {
+            margin-top: 0.2in !important;
+          }
+
+          /* Footer */
+          .text-center {
+            font-size: 9pt !important;
+            margin-top: 0.1in !important;
           }
         }
       `}</style>

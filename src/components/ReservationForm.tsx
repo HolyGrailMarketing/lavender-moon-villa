@@ -146,7 +146,26 @@ export default function ReservationForm({ reservationId, onSuccess, onCancel }: 
         // Load custom total if set
         if (data.use_custom_total) {
           setUseCustomTotal(true)
-          setCustomTotal(data.total_price?.toString() || '')
+          // Reverse-calculate the custom base rate (strip off service charge, additional items, guest charges)
+          const loadedItems = Array.isArray(data.additional_items)
+            ? data.additional_items
+            : (data.additional_items ? JSON.parse(data.additional_items) : [])
+          const additionalItemsSum = loadedItems.reduce((sum: number, item: any) => sum + (item.amount || 0), 0)
+          const serviceCharge = parseFloat(data.service_charge) || 0
+          const nights = Math.max(1, Math.ceil(
+            (new Date(data.check_out).getTime() - new Date(data.check_in).getTime()) / (1000 * 60 * 60 * 24)
+          ))
+          const roomDataForCalc = roomsData.find(r =>
+            r.name === data.room_name || r.name === data.room_number ||
+            data.room_name?.includes(r.name) || data.room_number?.includes(r.name)
+          )
+          const baseCapacity = data.max_guests || 0
+          const guestsOverCapacity = Math.max(0, data.num_guests - baseCapacity)
+          const extraGuestCharge = roomDataForCalc?.extraGuestCharge || 0
+          const additionalGuestCharge = (extraGuestCharge > 0 && guestsOverCapacity > 0)
+            ? extraGuestCharge * guestsOverCapacity * nights : 0
+          const customBaseRate = parseFloat(data.total_price) - serviceCharge - additionalItemsSum - additionalGuestCharge
+          setCustomTotal(Math.max(0, customBaseRate).toFixed(2))
         }
         // Load additional guests
         if (data.additional_guests) {
