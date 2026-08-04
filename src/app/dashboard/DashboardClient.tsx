@@ -169,7 +169,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
   const todayArrivals = reservations.filter(r => {
     const checkInDate = normalizeDate(r.check_in)
     // Show reservations with today's check-in date that are confirmed (paid) but not yet checked in
-    const matches = checkInDate === today && (r.status === 'deposit_paid' || r.status === 'paid_in_full' || r.status === 'pending')
+    const matches = checkInDate === today && (r.status === 'confirmed' || r.status === 'deposit_paid' || r.status === 'paid_in_full' || r.status === 'pending')
     return matches
   })
 
@@ -193,7 +193,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
     
     const checkInDate = normalizeDate(r.check_in)
     const isPastDue = checkInDate < today // Check-in date has passed
-    const isConfirmed = ['deposit_paid', 'paid_in_full', 'pending'].includes(r.status)
+    const isConfirmed = ['confirmed', 'deposit_paid', 'paid_in_full', 'pending'].includes(r.status)
     
     // Show confirmed reservations OR past-due reservations (regardless of status)
     return isConfirmed || isPastDue
@@ -745,6 +745,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                 <td className="px-4 md:px-6 py-4 text-gray-700 text-sm">{formatDateForDisplay(r.check_out)}</td>
                                 <td className="px-4 md:px-6 py-4">
                                   <span className={`px-2 py-1 text-xs rounded-full ${
+                                    r.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' :
                                     r.status === 'deposit_paid' ? 'bg-yellow-100 text-yellow-700' :
                                     r.status === 'paid_in_full' ? 'bg-green-100 text-green-700' :
                                     r.status === 'checked_in' ? 'bg-blue-100 text-blue-700' :
@@ -752,7 +753,8 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                     r.status === 'cancelled' ? 'bg-red-100 text-red-700' :
                                     'bg-gray-100 text-gray-700'
                                   }`}>
-                                    {r.status === 'deposit_paid' ? 'Deposit Paid' :
+                                    {r.status === 'confirmed' ? 'Confirmed' :
+                                     r.status === 'deposit_paid' ? 'Deposit Paid' :
                                      r.status === 'paid_in_full' ? 'Paid in Full' :
                                      r.status === 'checked_in' ? 'Checked In' :
                                      r.status === 'checked_out' ? 'Checked Out' :
@@ -782,7 +784,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                                       
                                       {/* Dropdown menu */}
                                       <div className="absolute right-0 mt-1 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                                        {(r.status === 'deposit_paid' || r.status === 'paid_in_full' || r.status === 'pending') && (
+                                        {(r.status === 'confirmed' || r.status === 'deposit_paid' || r.status === 'paid_in_full' || r.status === 'pending') && (
                                           <button
                                             onClick={() => { handleCheckIn(r.id); setOpenActionMenu(null); }}
                                             className="w-full px-4 py-2 text-left text-sm text-green-700 hover:bg-green-50 flex items-center gap-2"
@@ -1142,6 +1144,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                 <p className="text-sm text-gray-700 mt-2">
                   <strong>Current Status:</strong>{' '}
                   <span className={`px-2 py-1 text-xs rounded-full ${
+                    changingStatusReservation.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' :
                     changingStatusReservation.status === 'deposit_paid' ? 'bg-yellow-100 text-yellow-700' :
                     changingStatusReservation.status === 'paid_in_full' ? 'bg-green-100 text-green-700' :
                     changingStatusReservation.status === 'checked_in' ? 'bg-blue-100 text-blue-700' :
@@ -1149,7 +1152,8 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                     changingStatusReservation.status === 'cancelled' ? 'bg-red-100 text-red-700' :
                     'bg-gray-100 text-gray-700'
                   }`}>
-                    {changingStatusReservation.status === 'deposit_paid' ? 'Deposit Paid' :
+                    {changingStatusReservation.status === 'confirmed' ? 'Confirmed' :
+                     changingStatusReservation.status === 'deposit_paid' ? 'Deposit Paid' :
                      changingStatusReservation.status === 'paid_in_full' ? 'Paid in Full' :
                      changingStatusReservation.status === 'checked_in' ? 'Checked In' :
                      changingStatusReservation.status === 'checked_out' ? 'Checked Out' :
@@ -1170,6 +1174,7 @@ export default function DashboardClient({ user }: { user: { name: string; role: 
                   required
                 >
                   <option value="pending">Pending</option>
+                  <option value="confirmed">Confirmed</option>
                   <option value="deposit_paid">Deposit Paid</option>
                   <option value="paid_in_full">Paid in Full</option>
                   <option value="checked_in">Checked In</option>

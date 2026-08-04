@@ -4,6 +4,7 @@
  */
 
 import { RESERVATION_DISCLAIMERS } from './disclaimers'
+import { PAYMENTS_ENABLED } from './config'
 
 type EmailData = {
   to: string
@@ -260,6 +261,11 @@ function generateBookingConfirmationEmail(data: ReservationEmailData): string {
               </td>
             </tr>
           </table>
+          ${!PAYMENTS_ENABLED && outstandingBalance > 0 ? `
+          <p style="margin: 15px 0 0 0; padding: 12px; background: #e8f0fe; border-radius: 4px; font-size: 14px; color: #1a4e8a;">
+            <strong>No payment is required now.</strong> Your balance is due at check-in.
+          </p>
+          ` : ''}
         </div>
 
         ${data.specialRequests ? `

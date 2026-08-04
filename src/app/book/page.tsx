@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { PAYMENTS_ENABLED } from '@/lib/config'
 
 type Room = {
   id: number
@@ -140,7 +141,9 @@ export default function BookPage() {
       const reservation = await reservationRes.json()
       setReservationId(reservation.id)
       setCustomReservationId(reservation.reservation_id || null) // Store custom reservation ID
-      setStep('payment') // Move to payment step
+      // With online payment disabled the booking is already confirmed and the
+      // balance is collected at check-in
+      setStep(PAYMENTS_ENABLED ? 'payment' : 'confirmation')
     } catch (error: any) {
       alert(error.message || 'Error creating reservation. Please try again.')
     } finally {
@@ -245,6 +248,16 @@ export default function BookPage() {
     : 0
   const totalPrice = selectedRoom ? Number(selectedRoom.price_per_night) * nights : 0
 
+  // The payment step is only part of the flow when online payment is enabled
+  const wizardSteps = [
+    { key: 'dates', label: 'Dates' },
+    { key: 'rooms', label: 'Room' },
+    { key: 'details', label: 'Details' },
+    ...(PAYMENTS_ENABLED ? [{ key: 'payment', label: 'Payment' }] : []),
+    { key: 'confirmation', label: 'Confirm' },
+  ]
+  const stepOrder = wizardSteps.map(s => s.key)
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-moon-cream via-lavender-pale to-moon-cream">
       {/* Header */}
@@ -270,14 +283,7 @@ export default function BookPage() {
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-center gap-1 md:gap-2 overflow-x-auto pb-2">
-            {[
-              { key: 'dates', label: '1. Dates' },
-              { key: 'rooms', label: '2. Room' },
-              { key: 'details', label: '3. Details' },
-              { key: 'payment', label: '4. Payment' },
-              { key: 'confirmation', label: '5. Confirm' },
-            ].map((s, i) => {
-              const stepOrder = ['dates', 'rooms', 'details', 'payment', 'confirmation']
+            {wizardSteps.map((s, i) => {
               const currentStepIndex = stepOrder.indexOf(step)
               const stepIndex = stepOrder.indexOf(s.key)
               const isActive = step === s.key
@@ -313,9 +319,9 @@ export default function BookPage() {
                         </svg>
                       )}
                     </div>
-                    <span className="text-xs mt-1 hidden sm:block whitespace-nowrap">{s.label}</span>
+                    <span className="text-xs mt-1 hidden sm:block whitespace-nowrap">{i + 1}. {s.label}</span>
                   </div>
-                  {i < 4 && <div className={`w-4 md:w-8 h-0.5 mx-1 ${isCompleted ? 'bg-lavender-medium' : 'bg-gray-200'}`} />}
+                  {i < wizardSteps.length - 1 && <div className={`w-4 md:w-8 h-0.5 mx-1 ${isCompleted ? 'bg-lavender-medium' : 'bg-gray-200'}`} />}
                 </div>
               )
             })}
@@ -553,9 +559,15 @@ export default function BookPage() {
                       </Link>. 
                       Your personal information will be used to process your reservation and communicate with you about your stay.
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Payment processing is handled securely by DimePay. Your payment details are transmitted directly to our payment provider.
-                    </p>
+                    {PAYMENTS_ENABLED ? (
+                      <p className="text-xs text-gray-500">
+                        Payment processing is handled securely by DimePay. Your payment details are transmitted directly to our payment provider.
+                      </p>
+                    ) : (
+                      <p className="text-xs text-gray-500">
+                        No payment is required now — your balance is due when you arrive at check-in.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -565,7 +577,7 @@ export default function BookPage() {
                 disabled={loading}
                 className="w-full py-4 bg-lavender-deep text-white text-lg font-medium rounded-lg hover:bg-lavender-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Processing...' : 'Continue to Payment'}
+                {loading ? 'Processing...' : PAYMENTS_ENABLED ? 'Continue to Payment' : 'Complete Booking'}
               </button>
             </form>
           </div>
@@ -671,6 +683,108 @@ export default function BookPage() {
             >
               {processingPayment ? 'Processing...' : `Pay ${totalPrice.toFixed(2)}`}
             </button>
+          </div>
+        )}
+
+        {/* Step 5: Confirmation (pay-on-arrival bookings) */}
+        {step === 'confirmation' && selectedRoom && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 text-center">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+
+            <h2 className="text-3xl md:text-4xl font-serif text-lavender-deep mb-4">Booking Confirmed!</h2>
+            <p className="text-gray-600 mb-2">
+              Thank you, {formData.guest.first_name}. Your room is reserved.
+            </p>
+            {(customReservationId || reservationId) && (
+              <p className="text-sm text-gray-500 mb-8">
+                Reservation #: {customReservationId || reservationId}
+              </p>
+            )}
+
+            <div className="bg-lavender-pale rounded-lg p-6 mb-6 text-left">
+              <h3 className="font-semibold text-lavender-deep mb-4">Booking Summary</h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Room:</span>
+                  <span className="font-medium">{selectedRoom.room_number} - {selectedRoom.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Check-in:</span>
+                  <span className="font-medium">{new Date(formData.check_in + 'T12:00:00').toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Check-out:</span>
+                  <span className="font-medium">{new Date(formData.check_out + 'T12:00:00').toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Nights:</span>
+                  <span className="font-medium">{nights}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Guests:</span>
+                  <span className="font-medium">{formData.num_guests}</span>
+                </div>
+                <div className="flex justify-between text-xl font-bold text-lavender-deep pt-3 border-t border-lavender-medium mt-3">
+                  <span>Total Amount:</span>
+                  <span>${totalPrice.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">Payment is due at check-in</p>
+                  <p>No payment is required now. Your balance of ${totalPrice.toFixed(2)} will be collected when you arrive.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-lavender-pale rounded-lg p-6 mb-8 text-left">
+              <h3 className="font-semibold text-lavender-deep mb-4">What's Next?</h3>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>A confirmation email has been sent to {formData.guest.email}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Please check your email for booking details and arrival instructions</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>We look forward to hosting you at Lavender Moon Villas!</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/"
+                className="px-8 py-3 bg-lavender-deep text-white rounded-lg hover:bg-lavender-medium transition-colors"
+              >
+                Back to Home
+              </Link>
+              <Link
+                href="/my-reservation"
+                className="px-8 py-3 border-2 border-lavender-deep text-lavender-deep rounded-lg hover:bg-lavender-pale transition-colors"
+              >
+                Manage Reservation
+              </Link>
+            </div>
           </div>
         )}
 

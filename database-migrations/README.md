@@ -122,3 +122,27 @@ psql $DATABASE_URL -f database-migrations/add-room-images-table.sql
 
 ### Verification
 After running the migration, the script will verify the table was created by querying the table schema.
+
+## Add 'confirmed' Reservation Status
+
+### Problem
+With online payment disabled (`PAYMENTS_ENABLED = false` in `src/lib/config.ts`), guests book without paying and settle the balance at check-in. Those reservations are created with status `confirmed`, which the `reservations_status_check` constraint did not allow.
+
+### Solution
+Run `add-confirmed-status.sql` to recreate the constraint with `confirmed` included.
+
+### How to Run
+```bash
+psql $DATABASE_URL -f database-migrations/add-confirmed-status.sql
+```
+Or paste the file contents into the Neon SQL Editor.
+
+**Run this before deploying the pay-on-arrival changes** — otherwise every public booking fails with constraint violation `23514`.
+
+### What the Migration Does
+1. Drops the existing `reservations_status_check` constraint
+2. Recreates it allowing `pending`, `confirmed`, `deposit_paid`, `paid_in_full`, `checked_in`, `checked_out`, `cancelled`
+3. Verifies the constraint definition
+
+### Status: Applied
+This migration has already been run against the production database.

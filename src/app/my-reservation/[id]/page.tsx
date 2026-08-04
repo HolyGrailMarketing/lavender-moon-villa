@@ -197,7 +197,7 @@ export default function EditReservationPage() {
 
   if (!reservation) return null
 
-  const canEdit = reservation.status === 'pending' || reservation.status === 'deposit_paid' || reservation.status === 'paid_in_full'
+  const canEdit = reservation.status === 'pending' || reservation.status === 'confirmed' || reservation.status === 'deposit_paid' || reservation.status === 'paid_in_full'
   const nights = Math.ceil(
     (new Date(formData.check_out).getTime() - new Date(formData.check_in).getTime()) / 
     (1000 * 60 * 60 * 24)
@@ -229,7 +229,8 @@ export default function EditReservationPage() {
                 Reservation #{reservation.id}
               </h1>
               <p className="text-gray-600">Status: <span className="font-semibold">
-                {reservation.status === 'deposit_paid' ? 'Deposit Paid' :
+                {reservation.status === 'confirmed' ? 'Confirmed' :
+                 reservation.status === 'deposit_paid' ? 'Deposit Paid' :
                  reservation.status === 'paid_in_full' ? 'Paid in Full' :
                  reservation.status === 'checked_in' ? 'Checked In' :
                  reservation.status === 'checked_out' ? 'Checked Out' :

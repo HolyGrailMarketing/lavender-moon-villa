@@ -135,7 +135,7 @@ export async function PATCH(
     
     // Only auto-update if amount_paid is being changed and status is not explicitly provided
     if (amount_paid !== undefined && !status) {
-      const paymentStatuses = ['pending', 'deposit_paid', 'paid_in_full']
+      const paymentStatuses = ['pending', 'confirmed', 'deposit_paid', 'paid_in_full']
       const currentStatus = current.status as string
       
       // Only auto-update if current status is a payment-related status (not checked_in, checked_out, cancelled)
@@ -151,9 +151,11 @@ export async function PATCH(
             changes.push('Status changed to deposit_paid')
           }
         } else {
-          finalStatus = 'pending'
-          if (currentStatus !== 'pending') {
-            changes.push('Status changed to pending')
+          // Nothing paid: keep a pay-on-arrival booking confirmed rather than
+          // demoting it back to pending
+          finalStatus = currentStatus === 'confirmed' ? 'confirmed' : 'pending'
+          if (currentStatus !== finalStatus) {
+            changes.push(`Status changed to ${finalStatus}`)
           }
         }
       }

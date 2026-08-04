@@ -39,7 +39,7 @@ export async function GET(request: Request) {
       FROM reservations r
       JOIN guests g ON r.guest_id = g.id
       JOIN rooms rm ON r.room_id = rm.id
-      WHERE r.status IN ('deposit_paid', 'paid_in_full', 'pending')
+      WHERE r.status IN ('confirmed', 'deposit_paid', 'paid_in_full', 'pending')
         AND r.check_in::date = ${tomorrowStr}::date
         AND r.status NOT IN ('checked_in', 'checked_out', 'cancelled')
     `

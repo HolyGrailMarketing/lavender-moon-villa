@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       AND r.id NOT IN (
         SELECT DISTINCT res.room_id
         FROM reservations res
-        WHERE res.status IN ('deposit_paid', 'paid_in_full', 'checked_in', 'pending')
+        WHERE res.status IN ('confirmed', 'deposit_paid', 'paid_in_full', 'checked_in', 'pending')
         AND (
           (res.check_in <= ${checkOut}::date AND res.check_out >= ${checkIn}::date)
         )

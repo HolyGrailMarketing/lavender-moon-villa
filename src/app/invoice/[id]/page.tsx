@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { roomsData } from '@/lib/rooms-data'
+import { PAYMENT_POLICY } from '@/lib/disclaimers'
 
 interface InvoiceData {
   id: number
@@ -319,7 +320,7 @@ export default function InvoicePage() {
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded text-sm">
           <h4 className="font-semibold text-yellow-800 mb-2">Important Notice:</h4>
           <div className="text-yellow-700 space-y-2 text-xs">
-            <p><strong>Payment Policy:</strong> Reservations require payment equal to 1 night stay for all room reservations to be considered confirmed. Payment is refundable, less any deposit or transfer fees, if reservation is cancelled 7 days before check-in. Cancellations less than 7 days are subject to cancellation fees equivalent to 1 night stay. NON-REFUNDABLE rate bookings require full payment for reservation to be completed.</p>
+            <p><strong>Payment Policy:</strong> {PAYMENT_POLICY}</p>
             <p><strong>Security:</strong> Lavender Moon utilizes video security as well as security personnel. We request all guests adhere to all security protocols as failure to do so may result in you being asked to leave Lavender Moon premises and you may be subject to a damage fee charge.</p>
             <p><strong>Photography:</strong> Photos and Videos may be taken on Lavender Moon premises and used for promotional or referral material. If you do not wish to be photographed, kindly opt out by emailing us at <a href="mailto:nophotos@lavendermoon.net" className="underline">nophotos@lavendermoon.net</a> with your room number and name.</p>
             <p><strong>Smoking Policy:</strong> Smoking or vaping is never permitted in the rooms or surrounding areas close to the residence. A designated smoking area is available, just ask reception for that information when you check in, if needed.</p>
